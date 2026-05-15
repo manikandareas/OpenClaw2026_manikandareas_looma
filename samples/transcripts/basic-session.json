@@ -1,0 +1,24 @@
+{
+  "name": "Sample auth fix",
+  "harness": "codex",
+  "events": [
+    {
+      "type": "terminal_command",
+      "category": "execution",
+      "payload": {
+        "command": "bun test"
+      },
+      "displayText": "Ran test suite"
+    },
+    {
+      "type": "file_diff",
+      "category": "workspace",
+      "relatedFile": "apps/api/auth.ts",
+      "payload": {
+        "additions": 14,
+        "deletions": 2
+      },
+      "displayText": "Updated auth middleware"
+    }
+  ]
+}

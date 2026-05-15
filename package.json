@@ -1,0 +1,19 @@
+{
+  "name": "looma",
+  "private": true,
+  "packageManager": "bun@1.3.10",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun --filter @looma/web dev",
+    "build": "bun --filter '*' build",
+    "lint": "bun --filter '*' lint",
+    "typecheck": "bun --filter '*' typecheck",
+    "mcp": "bun --filter @looma/mcp-server start"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
