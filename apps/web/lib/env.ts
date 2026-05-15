@@ -20,3 +20,18 @@ export function getSupabaseServiceRoleKey() {
   }
   return key;
 }
+
+export function getLensAgentEnv() {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("Missing OPENAI_API_KEY");
+  }
+
+  const maxSteps = Number(process.env.LOOMA_LENS_MAX_STEPS ?? "8");
+
+  return {
+    apiKey,
+    model: process.env.LOOMA_OPENAI_MODEL ?? "gpt-4o-mini",
+    maxSteps: Number.isFinite(maxSteps) && maxSteps > 0 ? Math.floor(maxSteps) : 8,
+  };
+}

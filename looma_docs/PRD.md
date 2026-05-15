@@ -539,20 +539,11 @@ MCP server Looma adalah TypeScript MCP server yang:
 
 #### MCP Server Config Example
 
-```json
-{
-  "mcpServers": {
-    "looma": {
-      "command": "node",
-      "args": ["./packages/mcp-server/dist/index.js"],
-      "env": {
-        "LOOMA_API_URL": "http://localhost:3000/api",
-        "LOOMA_API_KEY": "..."
-      }
-    }
-  }
-}
+```bash
+claude mcp add --transport stdio --env LOOMA_API_URL=http://localhost:3000 --env LOOMA_API_KEY=<token> looma -- bun /abs/path/packages/mcp-server/src/index.ts
 ```
+
+API key dibuat dari dashboard authenticated Looma. Token ditampilkan sekali, lalu Looma hanya menyimpan SHA-256 hash di tabel `api_keys`.
 
 #### Demo Requirement
 
@@ -580,7 +571,7 @@ Simulated event stream tetap tersedia sebagai fallback untuk demo tanpa live age
 Looma menggunakan **hybrid capture model** untuk memastikan semua event ter-capture secara reliable:
 
 * **MCP Tools** (`record_start`, `record_stop`): User memiliki kontrol eksplisit kapan mulai dan berhenti merekam. Ini adalah conscious action.
-* **Agent Harness Hooks** (`PostToolCall`): Setiap tool call yang dilakukan agent otomatis ter-capture sebagai event tanpa bergantung pada agent "ingat" mengirim. Ini adalah implicit capture.
+* **Agent Harness Hooks** (`PostToolUse`, `PostToolUseFailure`): Setiap tool call yang dilakukan agent otomatis ter-capture sebagai event tanpa bergantung pada agent "ingat" mengirim. Ini adalah implicit capture.
 
 #### Mengapa Hybrid
 
@@ -595,23 +586,51 @@ Hooks perlu tahu apakah sedang ada recording aktif. Solusinya menggunakan file m
 ```
 
 * `record_start` dipanggil → MCP server menulis session ID ke `~/.looma/active_session`.
-* Hook `PostToolCall` → membaca file tersebut. Jika ada → kirim event. Jika tidak ada → skip.
+* Hook `PostToolUse` / `PostToolUseFailure` → membaca file tersebut. Jika ada → kirim event. Jika tidak ada → skip.
 * `record_stop` dipanggil → MCP server menghapus `~/.looma/active_session`.
 
 #### Claude Code Hooks Config Example
 
 ```json
 {
+  "env": {
+    "LOOMA_API_URL": "http://localhost:3000",
+    "LOOMA_API_KEY": "<token>"
+  },
   "hooks": {
-    "PostToolCall": [
+    "PostToolUse": [
       {
         "matcher": "*",
-        "command": "node ./packages/hook-bridge/dist/index.js '$TOOL_NAME' '$TOOL_INPUT' '$TOOL_OUTPUT'"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["/abs/path/packages/hook-bridge/dist/index.js"],
+            "async": true,
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["/abs/path/packages/hook-bridge/dist/index.js"],
+            "async": true,
+            "timeout": 30
+          }
+        ]
       }
     ]
   }
 }
 ```
+
+Claude Code command hooks mengirim input sebagai JSON melalui `stdin`; hook bridge tidak membaca `$TOOL_NAME`, `$TOOL_INPUT`, atau `$TOOL_OUTPUT`.
 
 #### Recording Scope
 
@@ -1472,7 +1491,7 @@ LLM tidak digunakan untuk:
 
 1. Coding agent menerima task dari user.
 2. Agent membaca file, menjalankan tool, mengedit file, menjalankan command, dan menjalankan test.
-3. Hooks (`PostToolCall`) otomatis mengirim setiap action sebagai event ke Looma API.
+3. Hooks (`PostToolUse`, `PostToolUseFailure`) otomatis mengirim setiap action sebagai event ke Looma API.
 4. Looma menyimpan event dengan redaction.
 5. UI live event stream update secara real-time via Supabase Realtime.
 6. User dapat melakukan follow-up prompts — recording tetap berjalan.
@@ -2276,7 +2295,7 @@ Supabase Storage optional
 ```text
 TypeScript MCP SDK
 Node.js runtime
-Hook bridge script (PostToolCall → Looma API)
+Hook bridge script (PostToolUse / PostToolUseFailure → Looma API)
 ```
 
 ## AI Model
@@ -2318,7 +2337,8 @@ Claude Code / Codex / OpenCode / OpenClaw / Cline / Aider
 │    → User controls session lifecycle       │
 │                                            │
 │  Hooks (implicit, automatic)               │
-│    PostToolCall → hook-bridge → API        │
+│    PostToolUse / PostToolUseFailure        │
+│    → hook-bridge → API                     │
 │    → Every agent action auto-captured      │
 │                                            │
 │  State: ~/.looma/active_session            │
@@ -2360,8 +2380,8 @@ Shareable Replay Artifact
 * Record event API.
 * Stop session API.
 * Replay API.
-* Real MCP server (record_start, record_event, record_stop) functional with Claude Code.
-* Hook bridge for automatic event capture (PostToolCall → Looma API).
+* Real MCP server (record_start, record_event, record_stop) functional with Claude Code after manual E2E verification.
+* Hook bridge for automatic event capture (PostToolUse / PostToolUseFailure → Looma API).
 * Active session file mechanism (~/.looma/active_session).
 * Simulated `/record` trigger (fallback).
 * Live event stream.
@@ -2585,7 +2605,7 @@ Future:
 * ~~Create login/signup pages di `apps/web/app/auth/login` dan `apps/web/app/auth/sign-up`.~~
 * ~~Setup Next.js proxy for route protection (`apps/web/proxy.ts`).~~
 * ~~Create MCP server skeleton (record_start, record_event, record_stop) di `packages/mcp-server`.~~
-* ~~Create hook bridge script (PostToolCall → Looma API) di `packages/hook-bridge`.~~
+* ~~Create hook bridge script (PostToolUse / PostToolUseFailure → Looma API) di `packages/hook-bridge`.~~
 * ~~Define shared event schema + Zod types di `packages/shared` (`@looma/shared`).~~
 
 ## Hour 1–3: Backend + App Pages Shell ✅ DONE
@@ -2597,8 +2617,8 @@ Future:
 * ~~Create import transcript API (enhanced: multi-event JSON array parsing with redaction).~~
 * ~~Add `GET /api/sessions` — list sessions with filtering (status, search), pagination (limit/offset), marker counts.~~
 * ~~Add `GET /api/sessions/[sessionId]` — single session detail with event/marker counts.~~
-* ~~MCP server fully functional with Claude Code.~~
-* ~~Hook bridge functional (reads ~/.looma/active_session, sends events).~~
+* MCP server has the required Looma tools and needs one live Claude Code E2E pass before being marked fully functional.
+* Hook bridge supports Claude Code stdin JSON hooks and needs one live Claude Code E2E pass before being marked fully functional.
 * ~~Add Zod schemas + sample event JSON di `@looma/shared` atau `apps/web/config/`.~~
 * ~~Install TanStack Query (`@tanstack/react-query`) + QueryProvider di `providers/query-provider.tsx`.~~
 * ~~Shared types di `types/session.ts` (SessionCard, GetSessionsParams, GetSessionsResponse).~~
@@ -2609,52 +2629,64 @@ Future:
 * ~~Build Sessions page → `apps/web/app/sessions/page.tsx` + `apps/web/features/sessions/` (list, filters, empty state).~~
 * ~~Build Import page → functional form di `features/import/components/import-form.tsx` (file upload, paste, submit, redirect).~~
 
-## Hour 3–6: Reconstructed Screen Replay UI
+## Hour 3–6: Reconstructed Screen Replay UI ✅ DONE
 
-Komponen replay tinggal di `apps/web/features/replay/` (komponen domain) dan `apps/web/components/` (primitives bersama). Library berat (Monaco/CodeMirror, xterm.js, react-diff-viewer) dibungkus `next/dynamic` agar tidak masuk bundle awal — selaras Vercel `bundle-dynamic-imports`.
+~~Komponen replay tinggal di `apps/web/features/replay/` (komponen domain) dan `apps/web/components/` (primitives bersama). Library berat (Monaco/CodeMirror, xterm.js, react-diff-viewer) dibungkus `next/dynamic` agar tidak masuk bundle awal — selaras Vercel `bundle-dynamic-imports`.~~
 
-* Build single viewport component with mode switching.
-* Terminal mode (xterm.js + typing animation).
-* Editor mode (Monaco/CodeMirror + cursor positioning + line highlight).
-* Diff mode (react-diff-viewer/diff2html).
-* Mode transitions (framer-motion crossfade + scale).
-* Mode indicator badge.
-* Timeline component with colored segments (hijau/kuning/merah).
-* Timeline scrubber with smooth drag.
-* Recording indicator (red pulse + event counter + RECORDING badge).
-* "Jump to Interesting" button.
+* ~~Build single viewport component with mode switching.~~
+* ~~Terminal mode (xterm.js + typing animation).~~
+* ~~Editor mode (Monaco/CodeMirror + cursor positioning + line highlight).~~
+* ~~Diff mode (react-diff-viewer/diff2html).~~
+* ~~Mode transitions (framer-motion crossfade + scale).~~
+* ~~Mode indicator badge.~~
+* ~~Timeline component with colored segments (hijau/kuning/merah).~~
+* ~~Timeline scrubber with smooth drag.~~
+* ~~Recording indicator (red pulse + event counter + RECORDING badge).~~
+* ~~"Jump to Interesting" button.~~
 
 ## Hour 6–8: lens-agent (Agentic Implementation)
 
 Tools dan orkestrator lens-agent tinggal di `apps/web/features/lens-agent/` (atau `apps/web/lib/lens-agent/` jika dianggap shared infrastructure). Route handler entry point: `apps/web/app/api/sessions/[sessionId]/process/route.ts`.
 
-* Install Vercel AI SDK (`ai` + `@ai-sdk/openai`).
-* Create AI provider config (GPT-4o-mini).
-* Create event compressor (raw events → structured summary).
-* Create rule-based tools:
-  * analyze_event_patterns (loop/retry/phase detection).
-  * detect_review_markers (Needs Review triggers).
-  * calculate_behavior_summary (metrics counting).
-  * evaluate_completeness (self-check).
-* Create LLM-powered tools:
-  * generate_chapters (phase detection + LLM titles).
-  * generate_session_notes (LLM summarization).
-* Create publish_replay_metadata tool (DB write).
-* Create agent orchestrator (generateText + tools + maxSteps: 8).
-* Create system prompt with decision framework.
-* Capture reasoning trace from agent steps.
-* Integrate with /api/sessions/[sessionId]/process route.
-* Timeline segment coloring based on pattern detection results.
-* Test with sample session data.
+**Status: Done.** Implementasi saat ini menggunakan Vercel AI SDK `ToolLoopAgent` dengan `toolChoice: "required"`, stop condition `hasToolCall("publish_replay_metadata")` + `stepCountIs(LOOMA_LENS_MAX_STEPS)`, dan state gating supaya non-empty session hanya menjadi `replay_ready` setelah tool `publish_replay_metadata` benar-benar terpanggil.
+
+* ~~Install Vercel AI SDK (`ai` + `@ai-sdk/openai`).~~
+* ~~Create AI provider config (default `gpt-4o-mini`, override via `LOOMA_OPENAI_MODEL`).~~
+* ~~Create event compressor (raw events → structured summary).~~
+* ~~Create rule-based tools:~~
+  * ~~analyze_event_patterns (loop/retry/phase detection).~~
+  * ~~detect_review_markers (Needs Review triggers).~~
+  * ~~calculate_behavior_summary (metrics counting).~~
+  * ~~evaluate_completeness (self-check + publish readiness).~~
+* ~~Create LLM-powered tools:~~
+  * ~~generate_chapters (phase detection + LLM titles).~~
+  * ~~generate_session_notes (LLM summarization).~~
+* ~~Create publish_replay_metadata tool (DB write).~~
+* ~~Create agent orchestrator (`ToolLoopAgent` + tools + default maxSteps: 8).~~
+* ~~Create system prompt with decision framework.~~
+* ~~Capture visible decision trace from actual tool calls (tool name, input/output summary, duration, status, timestamp, visible reason).~~
+* ~~Integrate with `/api/sessions/[sessionId]/process`, `/api/import`, and `/api/sessions/[sessionId]/stop`.~~
+* ~~Preserve deterministic 0-event publish fast path.~~
+* ~~Remove fallback success path for non-empty sessions; max-step/OpenAI/publish failures mark the session `failed`.~~
+* ~~Test with sample session data and Real Env E2E.~~
+
+Manual Real Env E2E result:
+
+* `gpt-5-nano` failed to publish within 12 steps and correctly left the session `failed`.
+* `gpt-4o-mini` succeeded with 24 imported events: `replay_ready`, 12 markers, 5 chapters, non-empty notes, and decision trace containing `publish_replay_metadata` with no fallback.
 
 ## Hour 8–9: Aha Moment + Landing Page
 
-* Pre-loaded demo session on landing page (auto-play).
-* Before/after comparison component (split screen).
-* Landing page hero section.
-* OG meta tags for replay pages.
-* Embed snippet generation + copy button.
-* Share button with copy link.
+**Status: Done.** Implementasi Hour 8–9 saat ini difokuskan pada replay Aha surface: `/session/demo` public fixture dengan auto-play, `Jump to Interesting` yang severity-first dan cyclic, share link, embed snippet, embed mode, dan OG/Twitter metadata untuk replay pages.
+
+**Catatan:** landing page sedang dalam pengembangan, sehingga item landing page di bawah belum dianggap final meskipun milestone Hour 8–9 sudah ditutup dari sisi replay Aha surface.
+
+* ~~Pre-loaded demo session on replay page (auto-play di `/session/demo`).~~
+* Before/after comparison component (split screen) — landing page in progress.
+* Landing page hero section — in progress.
+* ~~OG meta tags for replay pages.~~
+* ~~Embed snippet generation + copy button.~~
+* ~~Share button with copy link.~~
 
 ## Hour 9–10: Polish + Privacy
 

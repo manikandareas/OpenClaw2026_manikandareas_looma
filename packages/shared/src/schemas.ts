@@ -87,11 +87,11 @@ export const mcpRecordStartInputSchema = createSessionInputSchema.pick({
 });
 
 export const mcpRecordEventInputSchema = normalizedEventInputSchema.extend({
-  sessionId: z.string().uuid()
+  sessionId: z.string().uuid().optional()
 });
 
 export const mcpRecordStopInputSchema = z.object({
-  sessionId: z.string().uuid()
+  sessionId: z.string().uuid().optional()
 });
 
 export type CreateSessionInput = z.infer<typeof createSessionInputSchema>;

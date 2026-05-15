@@ -2,34 +2,25 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { homedir } from "node:os";
-import { normalizeToolCall } from "./normalize";
+import { normalizeClaudeHook, type ClaudeHookInput } from "./normalize";
 
 const ACTIVE_SESSION_PATH = join(homedir(), ".looma", "active_session");
 
 async function main() {
   try {
-    const [toolName, toolInputRaw, toolOutputRaw] = process.argv.slice(2);
+    const hookInput = await readHookInput();
+    if (!hookInput) return;
 
-    if (!toolName) return;
+    const sessionId = await readActiveSession();
+    if (!sessionId) return;
 
-    let sessionId: string;
-    try {
-      sessionId = (await readFile(ACTIVE_SESSION_PATH, "utf-8")).trim();
-      if (!sessionId) return;
-    } catch {
-      return;
-    }
-
-    const apiUrl = (process.env.LOOMA_API_URL ?? "http://localhost:3000").replace(/\/$/, "");
     const apiKey = process.env.LOOMA_API_KEY;
     if (!apiKey) return;
 
-    const toolInput = safeParse(toolInputRaw);
-    const toolOutput = safeParse(toolOutputRaw);
-
-    const event = normalizeToolCall(toolName, toolInput, toolOutput);
+    const event = normalizeClaudeHook(hookInput);
     if (!event) return;
 
+    const apiUrl = (process.env.LOOMA_API_URL ?? "http://localhost:3000").replace(/\/$/, "");
     const response = await fetch(`${apiUrl}/api/sessions/${sessionId}/events`, {
       method: "POST",
       headers: {
@@ -37,7 +28,7 @@ async function main() {
         authorization: `Bearer ${apiKey}`
       },
       body: JSON.stringify(event),
-      signal: AbortSignal.timeout(5000)
+      signal: AbortSignal.timeout(3000)
     });
 
     if (!response.ok) {
@@ -48,13 +39,40 @@ async function main() {
   }
 }
 
-function safeParse(raw: string | undefined): Record<string, unknown> {
-  if (!raw) return {};
+async function readHookInput(): Promise<ClaudeHookInput | null> {
+  const raw = await readStdin();
+  if (!raw.trim()) return null;
+
   try {
-    return JSON.parse(raw);
+    const parsed: unknown = JSON.parse(raw);
+    return isRecord(parsed) ? (parsed as ClaudeHookInput) : null;
   } catch {
-    return { raw };
+    process.stderr.write("[looma-hook] invalid Claude Code hook JSON on stdin\n");
+    return null;
   }
 }
 
-main();
+async function readActiveSession(): Promise<string | null> {
+  try {
+    const sessionId = (await readFile(ACTIVE_SESSION_PATH, "utf-8")).trim();
+    return sessionId || null;
+  } catch {
+    return null;
+  }
+}
+
+async function readStdin(): Promise<string> {
+  const chunks: Buffer[] = [];
+
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+
+  return Buffer.concat(chunks).toString("utf-8");
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+void main();

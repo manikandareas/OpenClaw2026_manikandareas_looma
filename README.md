@@ -103,21 +103,55 @@ Start the MCP server:
 LOOMA_API_URL=http://localhost:3000 LOOMA_API_KEY=... bun run mcp
 ```
 
+Generate `LOOMA_API_KEY` from the authenticated dashboard setup panel. Looma shows the token once and stores only a SHA-256 hash in `api_keys`.
+
+For Claude Code local stdio MCP:
+
+```bash
+claude mcp add --transport stdio --env LOOMA_API_URL=http://localhost:3000 --env LOOMA_API_KEY=<token> looma -- bun /abs/path/packages/mcp-server/src/index.ts
+```
+
 Build the hook bridge for agent hook integrations:
 
 ```bash
 bun run hook-bridge:build
 ```
 
-Example Claude Code hook command after building:
+Example Claude Code hooks in `.claude/settings.local.json` after building. Command hooks receive JSON on stdin, so no `$TOOL_NAME` arguments are needed:
 
 ```json
 {
+  "env": {
+    "LOOMA_API_URL": "http://localhost:3000",
+    "LOOMA_API_KEY": "<token>"
+  },
   "hooks": {
-    "PostToolCall": [
+    "PostToolUse": [
       {
         "matcher": "*",
-        "command": "node ./packages/hook-bridge/dist/index.js '$TOOL_NAME' '$TOOL_INPUT' '$TOOL_OUTPUT'"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["/abs/path/packages/hook-bridge/dist/index.js"],
+            "async": true,
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["/abs/path/packages/hook-bridge/dist/index.js"],
+            "async": true,
+            "timeout": 30
+          }
+        ]
       }
     ]
   }
@@ -148,10 +182,13 @@ bun run build
 Two-minute judge-friendly path:
 
 1. Start the web app and open the dashboard.
-2. Start a recording from the agent harness with `record_start`.
-3. Let the agent run or send sample events through `record_event`.
-4. Show normalized events appearing in Looma.
-5. Stop the recording with `record_stop`.
+2. Open **Start Recording** and generate a Looma API key.
+3. Add the Claude Code MCP server and hooks from the setup panel.
+4. Verify `/mcp` shows Looma tools.
+5. Start a recording from the agent harness with `record_start` or `/record start`.
+6. Let the agent run; hooks capture `Bash`, `Read`, `Write`, `Edit`, `MultiEdit`, `Glob`, `Grep`, `LS`, and failures.
+7. Show normalized events appearing in Looma.
+8. Stop the recording with `record_stop` or `/record stop`.
 6. Open the returned `/session/{sessionId}` replay link.
 7. Review the timeline, terminal output, diffs, test results, chapters, AI notes, and Needs Review markers.
 

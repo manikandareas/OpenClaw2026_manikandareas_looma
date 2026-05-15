@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import { QueryProvider } from "@/providers/query-provider";
 import { AppToaster } from "@/providers/app-toaster";
+import { getAppUrl } from "@/lib/env";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -22,8 +23,19 @@ const newsreader = Newsreader({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getAppUrl()),
   title: "Looma",
-  description: "Replay-native review layer for autonomous coding agents."
+  description: "Replay-native review layer for autonomous coding agents.",
+  openGraph: {
+    title: "Looma",
+    description: "Replay-native review layer for autonomous coding agents.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Looma",
+    description: "Replay-native review layer for autonomous coding agents.",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

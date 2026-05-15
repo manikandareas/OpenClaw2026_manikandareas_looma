@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["es2022"],
-    "types": ["node"],
+    "types": ["node", "bun"],
     "outDir": "dist",
     "declaration": false
   },

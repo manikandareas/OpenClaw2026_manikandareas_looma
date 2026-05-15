@@ -1,6 +1,6 @@
 import { processSessionInputSchema } from "@looma/shared";
+import { runLensAgent } from "@/features/lens-agent/api/run-lens-agent";
 import { getApiActor, unauthorized } from "@/lib/api/auth";
-import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
 type RouteContext = {
   params: Promise<{ sessionId: string }>;
@@ -12,24 +12,21 @@ export async function POST(request: Request, context: RouteContext) {
     return unauthorized();
   }
 
-  processSessionInputSchema.parse(await request.json().catch(() => ({})));
+  const input = processSessionInputSchema.parse(await request.json().catch(() => ({})));
   const { sessionId } = await context.params;
-  const supabase = createSupabaseAdminClient();
 
-  const { data, error } = await supabase
-    .from("sessions")
-    .update({ status: "replay_ready" })
-    .eq("id", sessionId)
-    .eq("user_id", actor.userId)
-    .select("id, status")
-    .single();
+  try {
+    const result = await runLensAgent({
+      sessionId,
+      userId: actor.userId,
+      force: input.force,
+    });
 
-  if (error) {
-    return Response.json({ error: error.message }, { status: 404 });
+    return Response.json(result);
+  } catch (error) {
+    return Response.json(
+      { error: error instanceof Error ? error.message : "Failed to process session" },
+      { status: 500 }
+    );
   }
-
-  return Response.json({
-    sessionId: data.id,
-    status: data.status
-  });
 }

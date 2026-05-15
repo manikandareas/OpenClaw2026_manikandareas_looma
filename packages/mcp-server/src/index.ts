@@ -8,7 +8,7 @@ import {
   mcpRecordStopInputSchema
 } from "@looma/shared";
 import { LoomaApiClient } from "./client";
-import { writeActiveSession, clearActiveSession } from "./session-file";
+import { writeActiveSession, clearActiveSession, readActiveSession, ACTIVE_SESSION_PATH } from "./session-file";
 
 const server = new McpServer({
   name: "looma",
@@ -30,7 +30,8 @@ server.registerTool(
   "record_start",
   {
     title: "Start Looma recording",
-    description: "Starts a Looma recording session and returns a /session/{sessionId} replay URL.",
+    description:
+      "Start conscious Looma recording for Claude Code. This creates a session, writes ~/.looma/active_session, and returns a /session/{sessionId} replay URL.",
     inputSchema: {
       name: z.string().min(1).max(160),
       harness: z.string().min(1).max(80).default("unknown"),
@@ -58,9 +59,10 @@ server.registerTool(
   "record_event",
   {
     title: "Record Looma event",
-    description: "Appends a normalized coding-agent event to an active Looma session.",
+    description:
+      "Append an optional manual event to the active Looma recording. Claude Code hooks capture tool calls automatically; use this for notable intent, review, or state events.",
     inputSchema: {
-      sessionId: z.string().uuid(),
+      sessionId: z.string().uuid().optional(),
       type: z.string().min(1).max(80),
       category: z.enum(["intent", "workspace", "execution", "review", "state", "system"]).default("system"),
       source: z.string().max(80).optional(),
@@ -75,8 +77,9 @@ server.registerTool(
   },
   async ({ sessionId, ...event }) => {
     const client = new LoomaApiClient();
+    const resolvedSessionId = await resolveSessionId(sessionId);
     const parsed = normalizedEventInputSchema.parse(event);
-    return jsonContent(await client.recordEvent(sessionId, parsed));
+    return jsonContent(await client.recordEvent(resolvedSessionId, parsed));
   }
 );
 
@@ -84,15 +87,17 @@ server.registerTool(
   "record_stop",
   {
     title: "Stop Looma recording",
-    description: "Stops a Looma recording session and returns its /session/{sessionId} replay URL.",
+    description:
+      "Stop the active Looma recording, trigger replay processing, clear ~/.looma/active_session, and return the /session/{sessionId} replay URL.",
     inputSchema: {
-      sessionId: z.string().uuid()
+      sessionId: z.string().uuid().optional()
     }
   },
   async (input) => {
     const client = new LoomaApiClient();
     const parsed = mcpRecordStopInputSchema.parse(input);
-    const result = await client.stopSession(parsed.sessionId);
+    const sessionId = await resolveSessionId(parsed.sessionId);
+    const result = await client.stopSession(sessionId);
     try {
       await clearActiveSession();
     } catch (err) {
@@ -101,6 +106,17 @@ server.registerTool(
     return jsonContent(result);
   }
 );
+
+async function resolveSessionId(sessionId: string | undefined): Promise<string> {
+  if (sessionId) return sessionId;
+
+  const activeSessionId = await readActiveSession();
+  if (activeSessionId) return activeSessionId;
+
+  throw new Error(
+    `No active Looma recording found. Call record_start first or pass sessionId explicitly. Expected active session file at ${ACTIVE_SESSION_PATH}.`
+  );
+}
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
