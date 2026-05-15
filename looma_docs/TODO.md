@@ -2,9 +2,9 @@
 
 - [x] **Join Devpost**: buka link OpenClaw Agenthon dan klik **Join Hackathon**.
 - [x] **Register di Devpost** dan lengkapi field pendaftaran.
-- [ ] **Start Project** di Devpost.
+- [x] **Start Project** di Devpost.
 - [x] Kalau tim: **undang semua teammate** lewat section **Manage Team**.
-- [ ] Pakai format nama tim:
+- [x] Pakai format nama tim:
       `OpenClaw2026_NamaTim`
 
 ## 2. GitHub repository
@@ -13,12 +13,12 @@
 - [x] Pastikan repo GitHub **Public**.
 - [x] Nama repo wajib mengikuti format:
       `OpenClaw2026_NamaTim_NamaProject`
-- [ ] Tambahkan `README.md` yang jelas berisi:
-  - [ ] Deskripsi proyek
-  - [ ] Cara instalasi
-  - [ ] Cara menjalankan program
-  - [ ] Environment variables/API key yang dibutuhkan, tanpa membocorkan secret
-  - [ ] Contoh input/output atau demo flow
+- [x] Tambahkan `README.md` yang jelas berisi:
+  - [x] Deskripsi proyek
+  - [x] Cara instalasi
+  - [x] Cara menjalankan program
+  - [x] Environment variables/API key yang dibutuhkan, tanpa membocorkan secret
+  - [x] Contoh input/output atau demo flow
 
 - [x] Pastikan commit history menunjukkan development dilakukan selama periode kompetisi.
 - [x] Jangan commit perubahan baru setelah deadline submission berakhir.
@@ -27,23 +27,23 @@
 
 Ini bagian paling penting karena bobot **Autonomy & Agent Behaviour = 30%**.
 
-- [ ] Proyek bukan sekadar chatbot biasa.
-- [ ] Ada **AI Agent atau Multi-Agent System**.
-- [ ] Agent bisa melakukan minimal 1 task secara tuntas tanpa intervensi manual manusia.
-- [ ] Ada **reasoning / decision-making**.
-- [ ] Ada **tool usage / tool call capability**.
-- [ ] Ada **autonomous loop** sampai task selesai.
-- [ ] Ada backend AI yang benar-benar fungsional, bukan hanya UI kosong.
-- [ ] Siapkan minimal 1 skenario demo yang menunjukkan agent bekerja dari awal sampai selesai.
+- [x] Proyek bukan sekadar chatbot biasa.
+- [x] Ada **AI Agent atau Multi-Agent System**.
+- [x] Agent bisa melakukan minimal 1 task secara tuntas tanpa intervensi manual manusia.
+- [x] Ada **reasoning / decision-making**.
+- [x] Ada **tool usage / tool call capability**.
+- [x] Ada **autonomous loop** sampai task selesai.
+- [x] Ada backend AI yang benar-benar fungsional, bukan hanya UI kosong.
+- [x] Siapkan minimal 1 skenario demo yang menunjukkan agent bekerja dari awal sampai selesai.
 
 Contoh yang perlu terlihat saat demo: agent menerima objective → berpikir/menentukan langkah → memanggil tool/API/function → memproses hasil → mengambil keputusan berikutnya → menyelesaikan task.
 
 ## 4. Build produk
 
-- [ ] Tentukan problem statement yang jelas dan nyata.
-- [ ] Tentukan user target.
-- [ ] Bangun fitur utama yang kecil tapi selesai.
-- [ ] Prioritaskan logika agent daripada UI.
+- [x] Tentukan problem statement yang jelas dan nyata.
+- [x] Tentukan user target.
+- [x] Bangun fitur utama yang kecil tapi selesai.
+- [x] Prioritaskan logika agent daripada UI.
 - [ ] Tambahkan handling edge case sederhana.
 - [ ] Simpan log/trace workflow agent agar mudah ditunjukkan ke juri.
 - [ ] Buat aplikasi stabil untuk demo 2 menit.
@@ -53,22 +53,22 @@ Contoh yang perlu terlihat saat demo: agent menerima objective → berpikir/mene
 
 Wajib dikumpulkan lewat Devpost:
 
-- [ ] **Project Description**
+- [x] **Project Description**
       Narasi singkat tentang proyek, masalah, solusi, dan impact.
-- [ ] **GitHub Repository**
+- [x] **GitHub Repository**
       Link repo public.
-- [ ] **Demo Video**
+- [x] **Demo Video**
       Link YouTube **Unlisted**.
-- [ ] **Pitch Deck**
+- [x] **Pitch Deck**
       PDF maksimal 5 slide.
-- [ ] **Live Deployment Link**
+- [x] **Live Deployment Link**
       Opsional, tapi bagus kalau ada.
-- [ ] **AI Tools / Models Used**
+- [x] **AI Tools / Models Used**
       Jelaskan model, framework, API, tools, atau library yang digunakan.
 
 ## 6. Demo video maksimal 2 menit
 
-- [ ] Nama video mengikuti format:
+- [x] Nama video mengikuti format:
       `OpenClaw2026_NamaTim_NamaProject`
 - [ ] Upload ke YouTube.
 - [ ] Set visibility ke **Unlisted**.
