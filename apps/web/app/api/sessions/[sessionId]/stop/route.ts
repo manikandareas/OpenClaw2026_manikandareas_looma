@@ -24,7 +24,7 @@ export async function POST(request: Request, context: RouteContext) {
 
   const { data: session, error: sessionError } = await supabase
     .from("sessions")
-    .select("id, user_id")
+    .select("id, user_id, status")
     .eq("id", sessionId)
     .eq("user_id", actor.userId)
     .single();
@@ -33,16 +33,12 @@ export async function POST(request: Request, context: RouteContext) {
     return Response.json({ error: "Session not found" }, { status: 404 });
   }
 
-  if (input.finalOutput) {
-    const finalOutputError = await recordFinalOutputEvent(
-      supabase,
-      session.id,
-      input.finalOutput
-    );
-
-    if (finalOutputError) {
-      return Response.json({ error: finalOutputError.message }, { status: 500 });
-    }
+  if (session.status !== "recording") {
+    return Response.json({
+      sessionId: session.id,
+      status: session.status,
+      replayUrl: getReplayUrl(session.id)
+    });
   }
 
   const { data, error } = await supabase
@@ -52,11 +48,34 @@ export async function POST(request: Request, context: RouteContext) {
       ended_at: endedAt
     })
     .eq("id", session.id)
+    .eq("status", "recording")
     .select("id, status")
     .single();
 
-  if (error) {
-    return Response.json({ error: error.message }, { status: 404 });
+  if (error || !data) {
+    const { data: currentSession } = await supabase
+      .from("sessions")
+      .select("id, status")
+      .eq("id", session.id)
+      .maybeSingle();
+
+    return Response.json({
+      sessionId: session.id,
+      status: currentSession?.status ?? "processing",
+      replayUrl: getReplayUrl(session.id)
+    });
+  }
+
+  if (input.finalOutput) {
+    const finalOutputError = await recordFinalOutputEvent(
+      supabase,
+      data.id,
+      input.finalOutput
+    );
+
+    if (finalOutputError) {
+      return Response.json({ error: finalOutputError.message }, { status: 500 });
+    }
   }
 
   try {

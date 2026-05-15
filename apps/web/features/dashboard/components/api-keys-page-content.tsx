@@ -39,10 +39,10 @@ export function ApiKeysPageContent({ appUrl }: ApiKeysPageContentProps) {
     [appUrl, token],
   );
   const doctorCommand = useMemo(
-    () => `LOOMA_API_URL=${appUrl} LOOMA_API_KEY=${token} looma doctor`,
+    () => `LOOMA_API_URL=${appUrl} LOOMA_API_KEY=${token} looma doctor --e2e`,
     [appUrl, token],
   );
-  const claudeCodeSnippet = `npm i -g looma-agent
+  const claudeCodeSnippet = `npm i -g looma-agent@beta
 ${setupCommand}
 ${doctorCommand}`;
 
@@ -64,7 +64,7 @@ ${doctorCommand}`;
             <p className="mt-1.5 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
               {createdKey
                 ? "Copy it now. Looma stores only its SHA-256 hash, so the secret cannot be shown again."
-                : "Generate a key for Claude Code, then use it to record MCP and hook events."}
+                : "Generate a key for Claude Code, then use the public looma-agent beta to record MCP and hook events."}
             </p>
           </div>
           <Button asChild variant="outline" size="sm" className="shrink-0 gap-1.5 rounded-md">
@@ -122,7 +122,7 @@ ${doctorCommand}`;
 
           <section className="space-y-3 pb-6">
             <p className="text-sm leading-relaxed text-foreground">
-              Start by connecting Claude Code to Looma:
+              Start by connecting Claude Code to Looma. The setup command writes `.mcp.json` and `.claude/settings.local.json`; the doctor command verifies the full recording path.
             </p>
             <CodeBlock value={claudeCodeSnippet} />
           </section>

@@ -1,6 +1,6 @@
 {
   "name": "looma-agent",
-  "version": "0.1.0-beta.0",
+  "version": "0.1.0-beta.2",
   "description": "Looma local agent bridge for MCP recording and Claude Code hooks.",
   "type": "module",
   "files": [

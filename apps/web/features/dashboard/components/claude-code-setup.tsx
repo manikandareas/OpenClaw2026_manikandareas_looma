@@ -25,7 +25,7 @@ export function ClaudeCodeSetup({ appUrl }: ClaudeCodeSetupProps) {
   const keys = data?.keys ?? [];
 
   const tokenPlaceholder = createdToken ?? "<LOOMA_API_KEY>";
-  const installCommand = "npm i -g looma-agent";
+  const installCommand = "npm i -g looma-agent@beta";
   const setupCommand = useMemo(
     () =>
       `looma setup claude-code --app-url ${appUrl} --api-key ${tokenPlaceholder}`,
@@ -33,7 +33,7 @@ export function ClaudeCodeSetup({ appUrl }: ClaudeCodeSetupProps) {
   );
   const doctorCommand = useMemo(
     () =>
-      `LOOMA_API_URL=${appUrl} LOOMA_API_KEY=${tokenPlaceholder} looma doctor`,
+      `LOOMA_API_URL=${appUrl} LOOMA_API_KEY=${tokenPlaceholder} looma doctor --e2e`,
     [appUrl, tokenPlaceholder]
   );
 
@@ -52,7 +52,7 @@ export function ClaudeCodeSetup({ appUrl }: ClaudeCodeSetupProps) {
           <CardTitle className="text-lg">Claude Code Setup</CardTitle>
         </div>
         <p className="text-sm text-muted-foreground">
-          Generate a Looma API key, connect the MCP server, then add hooks for automatic tool capture.
+          Generate a Looma API key, connect the MCP server, then add hooks for automatic tool capture through the public beta bridge.
         </p>
       </CardHeader>
       <CardContent className="space-y-5">
@@ -144,7 +144,7 @@ export function ClaudeCodeSetup({ appUrl }: ClaudeCodeSetupProps) {
           </div>
           <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-3">
             <p className="rounded-md border border-border px-3 py-2">
-              Run <code className="text-foreground">looma doctor</code>.
+              Run <code className="text-foreground">looma doctor --e2e</code>.
             </p>
             <p className="rounded-md border border-border px-3 py-2">Ask Claude to call `record_start`.</p>
             <p className="rounded-md border border-border px-3 py-2">Open the returned `/sessions/...` URL.</p>

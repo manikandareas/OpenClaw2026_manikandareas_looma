@@ -1,5 +1,6 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
+import { getCurrentCliCommand, shellCommand } from "./bin";
 
 type SetupClaudeCodeInput = {
   appUrl: string;
@@ -16,8 +17,10 @@ export async function setupClaudeCode(input: SetupClaudeCodeInput) {
 
   const mcpConfig = readObject(await readJson(mcpPath));
   const mcpServers = readObject(mcpConfig.mcpServers);
+  const cli = getCurrentCliCommand();
   mcpServers.looma = {
-    command: "looma-mcp",
+    command: cli.command,
+    args: [...cli.args, "mcp"],
     env: {
       LOOMA_API_URL: appUrl,
       LOOMA_API_KEY: input.apiKey,
@@ -51,7 +54,8 @@ function mergeHooks(existingHooks: Record<string, unknown>) {
 
 function upsertLoomaHook(value: unknown) {
   const entries = Array.isArray(value) ? value.filter(isRecord) : [];
-  const withoutLooma = entries.filter((entry) => !JSON.stringify(entry).includes("looma-hook"));
+  const withoutLooma = entries.filter((entry) => !JSON.stringify(entry).includes("looma"));
+  const cli = getCurrentCliCommand();
 
   return [
     ...withoutLooma,
@@ -60,7 +64,7 @@ function upsertLoomaHook(value: unknown) {
       hooks: [
         {
           type: "command",
-          command: "looma-hook",
+          command: shellCommand([cli.command, ...cli.args, "hook"]),
           async: true,
           timeout: 30,
         },

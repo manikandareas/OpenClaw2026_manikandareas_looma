@@ -1,11 +1,14 @@
 import type { CreateSessionInput, FinalOutputInput, NormalizedEventInput } from "./schemas";
 
+const DEFAULT_LOOMA_API_URL = "https://looma-gold.vercel.app";
+
 export class LoomaApiClient {
   private readonly apiUrl: string;
   private readonly apiKey: string;
 
   constructor(options: { apiUrl?: string; apiKey?: string } = {}) {
-    this.apiUrl = (options.apiUrl ?? process.env.LOOMA_API_URL ?? "http://localhost:3000").replace(/\/$/, "");
+    const apiUrl = options.apiUrl ?? process.env.LOOMA_API_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? DEFAULT_LOOMA_API_URL;
+    this.apiUrl = apiUrl.replace(/\/$/, "");
     this.apiKey = options.apiKey ?? process.env.LOOMA_API_KEY ?? "";
 
     if (!this.apiKey) {
@@ -50,16 +53,34 @@ export class LoomaApiClient {
       },
     });
 
-    const json: unknown = await response.json().catch(() => ({}));
+    const responseText = await response.text();
+    const json = parseJson(responseText);
 
     if (!response.ok) {
-      const errorMessage =
-        json && typeof json === "object" && "error" in json && typeof json.error === "string"
-          ? json.error
-          : `Looma API returned ${response.status}`;
+      const detail = getErrorDetail(json, responseText);
+      const method = init.method ?? "GET";
+      const errorMessage = `Looma API ${method} ${path} returned ${response.status}${detail ? `: ${detail}` : ""}`;
       throw new Error(errorMessage);
     }
 
     return json;
   }
+}
+
+function parseJson(text: string): unknown {
+  if (!text.trim()) return {};
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {};
+  }
+}
+
+function getErrorDetail(json: unknown, responseText: string): string {
+  if (json && typeof json === "object" && "error" in json && typeof json.error === "string") {
+    return json.error;
+  }
+
+  return responseText.trim().slice(0, 500);
 }

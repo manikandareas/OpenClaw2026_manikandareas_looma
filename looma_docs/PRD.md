@@ -541,7 +541,7 @@ MCP server Looma adalah TypeScript MCP server yang:
 
 ```bash
 npm i -g looma-agent
-looma setup claude-code --app-url http://localhost:3000 --api-key <token>
+looma setup claude-code --app-url $NEXT_PUBLIC_APP_URL --api-key <token>
 ```
 
 API key dibuat dari dashboard authenticated Looma. Token ditampilkan sekali, lalu Looma hanya menyimpan SHA-256 hash di tabel `api_keys`.
@@ -593,7 +593,7 @@ Hooks perlu tahu apakah sedang ada recording aktif. Solusinya menggunakan file m
 #### Claude Code Setup Command
 
 ```bash
-looma setup claude-code --app-url http://localhost:3000 --api-key <token>
+looma setup claude-code --app-url $NEXT_PUBLIC_APP_URL --api-key <token>
 ```
 
 Command ini menulis MCP stdio config dan hook config lokal untuk menjalankan `looma-mcp` dan `looma-hook` dari paket `looma-agent`.

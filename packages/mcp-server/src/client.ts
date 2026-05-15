@@ -1,11 +1,14 @@
 import type { CreateSessionInput, FinalOutputInput, NormalizedEventInput } from "@looma/shared";
 
+const DEFAULT_LOOMA_API_URL = "https://looma-gold.vercel.app";
+
 export class LoomaApiClient {
   private readonly apiUrl: string;
   private readonly apiKey: string;
 
   constructor() {
-    this.apiUrl = (process.env.LOOMA_API_URL ?? "http://localhost:3000").replace(/\/$/, "");
+    const apiUrl = process.env.LOOMA_API_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? DEFAULT_LOOMA_API_URL;
+    this.apiUrl = apiUrl.replace(/\/$/, "");
     this.apiKey = process.env.LOOMA_API_KEY ?? "";
 
     if (!this.apiKey) {

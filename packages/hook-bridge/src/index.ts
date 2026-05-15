@@ -5,6 +5,7 @@ import { homedir } from "node:os";
 import { normalizeClaudeHook, type ClaudeHookInput } from "./normalize";
 
 const ACTIVE_SESSION_PATH = join(homedir(), ".looma", "active_session");
+const DEFAULT_LOOMA_API_URL = "https://looma-gold.vercel.app";
 
 async function main() {
   try {
@@ -20,7 +21,8 @@ async function main() {
     const event = normalizeClaudeHook(hookInput);
     if (!event) return;
 
-    const apiUrl = (process.env.LOOMA_API_URL ?? "http://localhost:3000").replace(/\/$/, "");
+    const rawApiUrl = process.env.LOOMA_API_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? DEFAULT_LOOMA_API_URL;
+    const apiUrl = rawApiUrl.replace(/\/$/, "");
     const response = await fetch(`${apiUrl}/api/sessions/${sessionId}/events`, {
       method: "POST",
       headers: {

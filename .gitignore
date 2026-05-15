@@ -11,3 +11,4 @@ coverage
 .temp
 .codex
 supabase/.temp
+.vercel

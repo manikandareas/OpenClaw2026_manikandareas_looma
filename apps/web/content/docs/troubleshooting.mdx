@@ -10,22 +10,35 @@ Use this page when a recording does not produce the replay you expected.
 If `looma doctor` cannot authenticate, create a new key from the dashboard and export it:
 
 ```bash
-export LOOMA_API_URL=http://localhost:3000
+export LOOMA_API_URL=$NEXT_PUBLIC_APP_URL
 export LOOMA_API_KEY=<token>
 looma doctor
 ```
 
 Make sure the key belongs to the same Looma app URL you are recording to.
 
+For the full write-path check, run:
+
+```bash
+LOOMA_API_URL=$NEXT_PUBLIC_APP_URL LOOMA_API_KEY=<token> looma doctor --e2e
+```
+
+This creates a test session, records one event, stops it, and prints the replay URL.
+
 ## No MCP tools
 
 Run `/mcp` in Claude Code and confirm the `looma` server is listed. If `record_start`, `record_event`, and `record_stop` are missing, rerun setup:
 
 ```bash
-looma setup claude-code --app-url http://localhost:3000 --api-key <token>
+looma setup claude-code --app-url $NEXT_PUBLIC_APP_URL --api-key <token>
 ```
 
-Restart Claude Code after changing MCP configuration.
+Restart Claude Code after changing MCP configuration. The generated `.mcp.json` should use an absolute `node .../dist/cli.js mcp` command. If it still points to `looma-mcp`, upgrade the package and rerun setup:
+
+```bash
+npm i -g looma-agent@beta
+looma setup claude-code --app-url $NEXT_PUBLIC_APP_URL --api-key <token>
+```
 
 ## No live updates
 
@@ -38,6 +51,10 @@ If the replay page is open, refresh `/sessions/{sessionId}` and confirm the even
 Processing starts after `record_stop`. If the replay never becomes ready, check the server logs for the session process route and confirm `OPENAI_API_KEY` is available when AI session notes or markers are generated.
 
 You can still inspect raw captured events from the session API while processing is being fixed.
+
+## `record_stop` returns a server error
+
+Use `looma-agent@0.1.0-beta.1` or newer and make sure the Looma database includes the one-to-one replay metadata migration. `record_stop` should be safe to call when Claude Code hooks are active.
 
 ## Secrets or redaction concerns
 

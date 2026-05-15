@@ -1,5 +1,9 @@
 export function getAppUrl() {
-  return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const url = process.env.NEXT_PUBLIC_APP_URL;
+  if (!url) {
+    throw new Error("Missing NEXT_PUBLIC_APP_URL");
+  }
+  return url;
 }
 
 export function getSupabaseEnv() {

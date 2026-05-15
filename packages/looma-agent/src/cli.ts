@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { isDirectCliEntry } from "./bin";
 import { LoomaApiClient } from "./client";
 import { setupClaudeCode } from "./setup";
 import { ACTIVE_SESSION_PATH, readActiveSession } from "./session-file";
+
+const DEFAULT_LOOMA_API_URL = "https://looma-gold.vercel.app";
 
 type ParsedArgs = {
   command: string[];
@@ -36,7 +39,7 @@ async function main() {
   }
 
   if (command === "doctor") {
-    await runDoctor();
+    await runDoctor({ e2e: args.flags.e2e === true });
     return;
   }
 
@@ -84,14 +87,14 @@ function parseArgs(raw: string[]): ParsedArgs {
   return { command, flags };
 }
 
-async function runDoctor() {
-  const appUrl = process.env.LOOMA_API_URL ?? "http://localhost:3000";
+async function runDoctor(options: { e2e: boolean }) {
+  const appUrl = process.env.LOOMA_API_URL ?? process.env.NEXT_PUBLIC_APP_URL ?? DEFAULT_LOOMA_API_URL;
   const apiKey = process.env.LOOMA_API_KEY;
   const activeSession = await readActiveSession();
   const projectDir = process.cwd();
 
   const checks = [
-    ["LOOMA_API_URL", appUrl],
+    ["LOOMA_API_URL", appUrl ?? "missing"],
     ["LOOMA_API_KEY", apiKey ? "set" : "missing"],
     ["active session", activeSession ?? "none"],
     [".mcp.json", existsSync(join(projectDir, ".mcp.json")) ? "found" : "missing"],
@@ -104,13 +107,68 @@ async function runDoctor() {
   }
 
   if (apiKey) {
+    const client = new LoomaApiClient({ apiUrl: appUrl, apiKey });
     try {
-      await new LoomaApiClient({ apiUrl: appUrl, apiKey }).doctor();
+      await client.doctor();
       process.stdout.write("API auth: ok\n");
     } catch (error) {
       process.stdout.write(`API auth: failed (${error instanceof Error ? error.message : "unknown error"})\n`);
+      throw error;
+    }
+
+    if (options.e2e) {
+      try {
+        const started = await client.createSession({
+          name: `Looma doctor E2E ${new Date().toISOString()}`,
+          harness: "looma-doctor",
+          agentName: "looma-agent",
+          workspaceName: projectDir,
+          sourceType: "mcp",
+        });
+        const sessionId = getSessionId(started);
+        await client.recordEvent(sessionId, {
+          type: "doctor_e2e",
+          category: "system",
+          source: "looma-agent",
+          actor: "agent",
+          displayText: "Looma doctor verified record_start, record_event, and record_stop.",
+          sensitivity: "none",
+          payload: {
+            package: "looma-agent",
+          },
+        });
+        const stopped = await client.stopSession(sessionId, {
+          finalOutput: {
+            title: "Looma doctor E2E",
+            content: "Looma doctor successfully verified the public agent bridge end to end.",
+            format: "markdown",
+            sensitivity: "none",
+          },
+        });
+        process.stdout.write(`API e2e: ok (${getReplayUrl(stopped) ?? sessionId})\n`);
+      } catch (error) {
+        process.stdout.write(`API e2e: failed (${error instanceof Error ? error.message : "unknown error"})\n`);
+        throw error;
+      }
     }
   }
+
+}
+
+function getSessionId(value: unknown): string {
+  if (value && typeof value === "object" && "sessionId" in value && typeof value.sessionId === "string") {
+    return value.sessionId;
+  }
+
+  throw new Error("Looma API did not return a sessionId");
+}
+
+function getReplayUrl(value: unknown): string | null {
+  if (value && typeof value === "object" && "replayUrl" in value && typeof value.replayUrl === "string") {
+    return value.replayUrl;
+  }
+
+  return null;
 }
 
 function readRequiredFlag(args: ParsedArgs, flag: string): string {
@@ -131,13 +189,15 @@ function printHelp() {
 
 Usage:
   looma setup claude-code --app-url <url> --api-key <token> [--project-dir <path>]
-  looma doctor
+  looma doctor [--e2e]
   looma mcp
   looma hook
 `);
 }
 
-main().catch((error) => {
-  process.stderr.write(`${error instanceof Error ? error.message : "Unknown error"}\n`);
-  process.exitCode = 1;
-});
+if (isDirectCliEntry(import.meta.url, process.argv[1])) {
+  main().catch((error) => {
+    process.stderr.write(`${error instanceof Error ? error.message : "Unknown error"}\n`);
+    process.exitCode = 1;
+  });
+}

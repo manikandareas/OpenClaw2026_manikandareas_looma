@@ -9,7 +9,7 @@ bun install
 bun dev
 ```
 
-Open `http://localhost:3000/dashboard`, sign in, and use **Start Recording** to generate a Looma API key. The token is shown once. Do not commit it.
+Open `/dashboard`, sign in, and use **Start Recording** to generate a Looma API key. The token is shown once. Do not commit it.
 
 ## 2. Install and connect the Looma agent
 
@@ -17,8 +17,8 @@ Use the public beta package so Claude Code does not depend on this repo's local 
 
 ```bash
 npm i -g looma-agent
-looma setup claude-code --app-url http://localhost:3000 --api-key <token>
-LOOMA_API_URL=http://localhost:3000 LOOMA_API_KEY=<token> looma doctor
+looma setup claude-code --app-url $NEXT_PUBLIC_APP_URL --api-key <token>
+LOOMA_API_URL=$NEXT_PUBLIC_APP_URL LOOMA_API_KEY=<token> looma doctor
 ```
 
 Then run `/mcp` in Claude Code and confirm the `looma` server exposes:

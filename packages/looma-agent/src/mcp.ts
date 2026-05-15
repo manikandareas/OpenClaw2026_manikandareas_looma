@@ -2,6 +2,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { isDirectCliEntry } from "./bin";
 import { LoomaApiClient } from "./client";
 import {
   createSessionInputSchema,
@@ -29,7 +30,7 @@ function jsonContent(value: unknown) {
 export async function runMcpServer() {
   const server = new McpServer({
     name: "looma",
-    version: "0.1.0-beta.0",
+    version: "0.1.0-beta.2",
   });
 
   server.registerTool(
@@ -137,6 +138,6 @@ function getSessionId(value: unknown): string {
   throw new Error("Looma API did not return a sessionId");
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isDirectCliEntry(import.meta.url, process.argv[1])) {
   await runMcpServer();
 }

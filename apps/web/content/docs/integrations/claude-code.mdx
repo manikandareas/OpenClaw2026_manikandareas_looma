@@ -12,19 +12,25 @@ bun install
 bun dev
 ```
 
-Open `http://localhost:3000/dashboard`, sign in, and create a Looma API key.
+Open `/dashboard`, sign in, and create a Looma API key.
 
 ## Install and connect
 
 Install the public beta agent package:
 
 ```bash
-npm i -g looma-agent
-looma setup claude-code --app-url http://localhost:3000 --api-key <token>
-LOOMA_API_URL=http://localhost:3000 LOOMA_API_KEY=<token> looma doctor
+npm i -g looma-agent@beta
+looma setup claude-code --app-url $NEXT_PUBLIC_APP_URL --api-key <token>
+LOOMA_API_URL=$NEXT_PUBLIC_APP_URL LOOMA_API_KEY=<token> looma doctor --e2e
 ```
 
-`looma setup claude-code` writes local Claude Code MCP and hook configuration in the current project.
+`looma setup claude-code` writes local Claude Code MCP and hook configuration in the current project:
+
+- `.mcp.json` starts Looma through the installed package entrypoint with an absolute `node .../dist/cli.js mcp` command.
+- `.claude/settings.local.json` installs async `PostToolUse` and `PostToolUseFailure` hooks with the same installed package entrypoint.
+- `LOOMA_API_URL` and `LOOMA_API_KEY` are scoped to the generated project config.
+
+Use `looma doctor --e2e` for a real integration check. It creates a recording, writes a test event, stops the recording, and prints the replay URL.
 
 ## Check `/mcp`
 
@@ -54,7 +60,7 @@ description: Start or stop a Looma recording through MCP.
 Use the Looma MCP tools for recording.
 
 - If the user says `/record start <name>`, call `record_start` with that name, `harness: "claude-code"`, and the current workspace name.
-- If the user says `/record stop`, call `record_stop` without `sessionId`; Looma reads `~/.looma/active_session`.
+- If the user says `/record stop`, call `record_stop` without `sessionId`; Looma reads `~/.looma/active_session`. Include `finalOutput.content` when the final answer should appear on the replay page.
 - Do not send secrets or full file contents through `record_event`.
 
 User arguments: $ARGUMENTS
@@ -70,3 +76,7 @@ This command is a convenience wrapper. MCP tools and hooks remain the source of 
 4. Confirm the recording indicator and event count update while the session is active.
 5. Run `/record stop` or call `record_stop`.
 6. Confirm the replay includes events, markers, chapters, notes, and behavior summary.
+
+## Public beta notes
+
+Use `looma-agent@beta` until the Claude Code bridge is promoted to the `latest` tag. The fixed public beta is `0.1.0-beta.1`; it uses deterministic Claude Code config and supports `record_stop.finalOutput`.

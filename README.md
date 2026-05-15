@@ -100,12 +100,20 @@ bun run dev
 For public beta installs, use the packaged agent bridge instead of repo-local paths:
 
 ```bash
-npm i -g looma-agent
-looma setup claude-code --app-url http://localhost:3000 --api-key <token>
-LOOMA_API_URL=http://localhost:3000 LOOMA_API_KEY=<token> looma doctor
+npm i -g looma-agent@beta
+looma setup claude-code --app-url $NEXT_PUBLIC_APP_URL --api-key <token>
+LOOMA_API_URL=$NEXT_PUBLIC_APP_URL LOOMA_API_KEY=<token> looma doctor --e2e
 ```
 
 Generate `LOOMA_API_KEY` from the authenticated dashboard setup panel. Looma shows the token once and stores only a SHA-256 hash in `api_keys`.
+
+`looma setup claude-code` writes deterministic Claude Code config into the target project:
+
+- `.mcp.json` starts Looma through an absolute `node .../dist/cli.js mcp` command from the installed package.
+- `.claude/settings.local.json` installs async Claude Code hooks through the same installed package entrypoint.
+- `looma doctor --e2e` verifies the full write path by creating a session, recording one event, stopping it, and printing the replay URL.
+
+Use `looma-agent@beta` until the Claude Code bridge is promoted to the NPM `latest` tag. The current fixed beta is `0.1.0-beta.1`.
 
 Verification commands:
 
@@ -119,11 +127,11 @@ bun run build
 
 | Variable | Scope | Description |
 | --- | --- | --- |
-| `NEXT_PUBLIC_APP_URL` | Public | Base URL used to build replay links, usually `http://localhost:3000` locally. |
+| `NEXT_PUBLIC_APP_URL` | Public | Base URL used to build replay links, for example `https://looma-gold.vercel.app`. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Public | Supabase project URL used by the web app. |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Public | Supabase publishable key used by browser and SSR clients. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Server-only | Service role key used by server routes for privileged session/event access. Do not expose this to the browser. |
-| `LOOMA_API_URL` | Server/tooling | Base Looma web URL for MCP and hook bridge calls, usually `http://localhost:3000`. |
+| `LOOMA_API_URL` | Server/tooling | Base Looma web URL for MCP and hook bridge calls. Use the same value as `NEXT_PUBLIC_APP_URL`; the public beta domain is `https://looma-gold.vercel.app`. |
 | `LOOMA_API_KEY` | Server/tooling | Bearer token used by MCP and hook bridge requests to Looma API routes. |
 
 ## Demo Flow
@@ -132,14 +140,14 @@ Two-minute judge-friendly path:
 
 1. Start the web app and open the dashboard.
 2. Open **Start Recording** and generate a Looma API key.
-3. Install `looma-agent` and run the setup command from the setup panel.
-4. Verify `/mcp` shows Looma tools.
+3. Install `looma-agent@beta` and run the setup command from the setup panel.
+4. Run `looma doctor --e2e`, then verify `/mcp` shows Looma tools.
 5. Start a recording from the agent harness with `record_start` or `/record start`.
 6. Let the agent run; hooks capture `Bash`, `Read`, `Write`, `Edit`, `MultiEdit`, `Glob`, `Grep`, `LS`, and failures.
 7. Show normalized events appearing in Looma.
 8. Stop the recording with `record_stop` or `/record stop`.
-6. Open the returned `/sessions/{sessionId}` replay link.
-7. Review the timeline, terminal output, diffs, test results, chapters, AI notes, and Needs Review markers.
+9. Open the returned `/sessions/{sessionId}` replay link.
+10. Review the timeline, terminal output, diffs, test results, chapters, AI notes, and Needs Review markers.
 
 ## Example Input/Output
 
@@ -162,7 +170,7 @@ Output:
 {
   "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
   "status": "recording",
-  "replayUrl": "http://localhost:3000/sessions/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+  "replayUrl": "https://looma-gold.vercel.app/sessions/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
 }
 ```
 
@@ -204,9 +212,17 @@ Input:
 
 ```json
 {
-  "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+  "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
+  "finalOutput": {
+    "title": "Final answer",
+    "content": "Shipped the auth flow and verified login, refresh, and logout paths.",
+    "format": "markdown",
+    "sensitivity": "none"
+  }
 }
 ```
+
+`finalOutput` is optional. Passing it makes the final agent answer visible on the replay page.
 
 Output:
 
@@ -214,7 +230,7 @@ Output:
 {
   "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
   "status": "processing",
-  "replayUrl": "http://localhost:3000/sessions/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+  "replayUrl": "https://looma-gold.vercel.app/sessions/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
 }
 ```
 

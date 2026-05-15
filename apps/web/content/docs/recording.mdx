@@ -24,7 +24,7 @@ The response includes the session ID and the public replay route:
 {
   "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
   "status": "recording",
-  "replayUrl": "http://localhost:3000/sessions/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+  "replayUrl": "https://looma-gold.vercel.app/sessions/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
 }
 ```
 
@@ -64,9 +64,11 @@ After stop, Looma marks the session as `processing` and prepares replay metadata
 {
   "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
   "status": "processing",
-  "replayUrl": "http://localhost:3000/sessions/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+  "replayUrl": "https://looma-gold.vercel.app/sessions/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
 }
 ```
+
+`record_stop` is idempotent for completed or already-processing sessions. If Claude Code hooks also fire around the stop call, Looma returns the existing session/replay state instead of creating duplicate replay metadata.
 
 ## Open the replay
 

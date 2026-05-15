@@ -16,7 +16,7 @@ bun install
 Create local environment values for the web app:
 
 ```bash
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_APP_URL=https://looma-gold.vercel.app
 NEXT_PUBLIC_SUPABASE_URL=<your-supabase-url>
 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<your-publishable-key>
 SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
@@ -31,7 +31,7 @@ OPENAI_API_KEY=<your-openai-api-key>
 bun dev
 ```
 
-Open `http://localhost:3000/dashboard`.
+Open `/dashboard`.
 
 ## Sign in
 
@@ -42,9 +42,21 @@ Create or use a Supabase-backed account. Dashboard and sessions routes require a
 From the dashboard, open the recording setup flow and create a Looma API key. The key is shown once. Use it as `LOOMA_API_KEY` when configuring agent tooling.
 
 ```bash
-export LOOMA_API_URL=http://localhost:3000
+export LOOMA_API_URL=$NEXT_PUBLIC_APP_URL
 export LOOMA_API_KEY=<token>
 ```
+
+## Connect Claude Code
+
+Install the public beta bridge, write Claude Code MCP and hook config, then run the end-to-end doctor check:
+
+```bash
+npm i -g looma-agent@beta
+looma setup claude-code --app-url $NEXT_PUBLIC_APP_URL --api-key <token>
+LOOMA_API_URL=$NEXT_PUBLIC_APP_URL LOOMA_API_KEY=<token> looma doctor --e2e
+```
+
+The setup command writes `.mcp.json` and `.claude/settings.local.json` in the Claude Code project. Restart Claude Code, run `/mcp`, and confirm the `looma` server exposes `record_start`, `record_event`, and `record_stop`.
 
 ## Verify the local app
 

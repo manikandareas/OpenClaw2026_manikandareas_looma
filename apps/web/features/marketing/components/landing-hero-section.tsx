@@ -4,7 +4,6 @@ import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { LandingDemoSessionPreview } from "@/features/marketing/components/landing-demo-session-preview";
 
 function HeroReplayShowcase() {
   const reduce = useReducedMotion();
@@ -36,10 +35,12 @@ function HeroReplayShowcase() {
         }}
         style={{ transformStyle: "preserve-3d" }}
       >
-        <div className="aspect-video w-full p-2 sm:p-3">
-          <LandingDemoSessionPreview
-            variant="hero"
-            className="h-full min-h-0 rounded-[12px] sm:rounded-[14px]"
+        <div className="aspect-[16/10] w-full p-2 sm:p-3 lg:aspect-[16/9]">
+          <iframe
+            src="/sessions/demo?embed=1"
+            title="Looma demo replay"
+            className="h-full w-full rounded-[12px] border-0 bg-background sm:rounded-[14px]"
+            loading="lazy"
           />
         </div>
       </motion.div>
@@ -109,7 +110,7 @@ export function LandingHeroSection() {
                     variant="outline"
                     className="h-14 rounded-full border-border/80 bg-card px-7 text-base text-card-foreground shadow-sm hover:bg-muted"
                   >
-                    <Link href="#demo">Watch the demo</Link>
+                    <Link href="/sessions/demo">Watch the demo</Link>
                   </Button>
                 </motion.div>
               </motion.div>

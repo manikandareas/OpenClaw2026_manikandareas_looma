@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readFile } from "node:fs/promises";
+import { isDirectCliEntry } from "./bin";
 import { LoomaApiClient } from "./client";
 import { normalizeClaudeHook, type ClaudeHookInput } from "./normalize";
 import { normalizedEventInputSchema } from "./schemas";
@@ -54,6 +55,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (isDirectCliEntry(import.meta.url, process.argv[1])) {
   await runHookBridge();
 }
