@@ -573,6 +573,66 @@ Simulated event stream tetap tersedia sebagai fallback untuk demo tanpa live age
 * `record_stop` menghentikan recording dan trigger processing.
 * Demo menunjukkan real MCP integration, bukan hanya simulated events.
 
+### 13.1.2 Hybrid Capture: MCP + Hooks
+
+#### Konsep
+
+Looma menggunakan **hybrid capture model** untuk memastikan semua event ter-capture secara reliable:
+
+* **MCP Tools** (`record_start`, `record_stop`): User memiliki kontrol eksplisit kapan mulai dan berhenti merekam. Ini adalah conscious action.
+* **Agent Harness Hooks** (`PostToolCall`): Setiap tool call yang dilakukan agent otomatis ter-capture sebagai event tanpa bergantung pada agent "ingat" mengirim. Ini adalah implicit capture.
+
+#### Mengapa Hybrid
+
+Jika hanya mengandalkan MCP `record_event`, agent harus secara sadar memanggil tool tersebut di setiap langkah. Ini unreliable — agent bisa lupa, skip, atau tidak konsisten. Hooks memastikan **100% event ter-capture** selama recording aktif.
+
+#### Mekanisme State: Active Session File
+
+Hooks perlu tahu apakah sedang ada recording aktif. Solusinya menggunakan file marker lokal:
+
+```text
+~/.looma/active_session
+```
+
+* `record_start` dipanggil → MCP server menulis session ID ke `~/.looma/active_session`.
+* Hook `PostToolCall` → membaca file tersebut. Jika ada → kirim event. Jika tidak ada → skip.
+* `record_stop` dipanggil → MCP server menghapus `~/.looma/active_session`.
+
+#### Claude Code Hooks Config Example
+
+```json
+{
+  "hooks": {
+    "PostToolCall": [
+      {
+        "matcher": "*",
+        "command": "node ./packages/hook-bridge/dist/index.js '$TOOL_NAME' '$TOOL_INPUT' '$TOOL_OUTPUT'"
+      }
+    ]
+  }
+}
+```
+
+#### Recording Scope
+
+* Semua event dalam session agent terus direkam sampai `record_stop` dipanggil.
+* Multi-task dalam satu recording di-support — chapter generation akan memisahkan fase secara otomatis.
+* User bisa melakukan banyak follow-up prompts dalam satu recording session.
+
+#### Auto-stop (Nice to Have)
+
+* Jika tidak ada event baru selama 30 menit, session otomatis di-stop.
+* Mencegah recording "zombie" yang lupa di-stop.
+
+#### Acceptance Criteria
+
+* MCP `record_start` menulis session ID ke `~/.looma/active_session`.
+* MCP `record_stop` menghapus `~/.looma/active_session`.
+* Hook bridge membaca active session file dan mengirim event ke API.
+* Hook bridge skip jika tidak ada active session.
+* Multi-task recording menghasilkan events yang continuous dalam satu session.
+* Recording berlanjut across multiple user prompts sampai explicit stop.
+
 ---
 
 ## 13.2 Harness-Agnostic Input Layer
@@ -615,7 +675,7 @@ User dapat upload transcript agent session yang sudah ada, misalnya JSON/JSONL l
 * User upload sample JSON/JSONL.
 * Sistem membaca raw transcript.
 * Sistem menormalisasi event ke Looma schema.
-* Replay Assistant Agent menghasilkan markers, chapters, dan notes.
+* lens-agent menghasilkan markers, chapters, dan notes.
 * User mendapatkan replay link.
 
 ### Why This Matters
@@ -923,7 +983,7 @@ Event dapat diberi Needs Review jika:
 
 ### Description
 
-Replay Assistant Agent membuat chapter ringan berdasarkan fase aktivitas agent.
+lens-agent membuat chapter ringan berdasarkan fase aktivitas agent.
 
 ### Example Chapters
 
@@ -1146,11 +1206,11 @@ Tombol prominent di replay page yang langsung membawa user ke momen paling penti
 
 ---
 
-## 14. Replay Assistant Agent
+## 14. lens-agent
 
 ## 14.1 Definition
 
-Replay Assistant Agent adalah elemen AI agent utama dalam Looma.
+**lens-agent** adalah agen AI internal Looma yang memproses session pasca-`record_stop` — mengubah raw event stream menjadi replay metadata (chapters, markers, notes, behavior summary) yang siap ditampilkan oleh UI.
 
 ### Goal
 
@@ -1158,73 +1218,171 @@ Mengubah raw autonomous-agent session event stream menjadi replay yang mudah din
 
 ### Autonomous Task
 
-Given a raw autonomous coding-agent session event stream, the Replay Assistant Agent autonomously classifies events, creates lightweight chapters, surfaces review-worthy markers, redacts sensitive display data, generates concise session notes, and publishes replay metadata for the UI.
+Given a raw autonomous coding-agent session event stream, the lens-agent autonomously classifies events, creates lightweight chapters, surfaces review-worthy markers, generates concise session notes, and publishes replay metadata for the UI. Agent beroperasi dalam **autonomous loop** — memilih tool mana yang dipanggil berikutnya berdasarkan reasoning, dan dapat iterate sampai output dianggap lengkap.
 
 ### Agent Capabilities
 
-* Reasoning: memahami urutan session dan konteks event.
-* Decision-making: memilih momen yang perlu marker.
-* Tool usage: memakai internal tools untuk membaca event, membuat marker, menyimpan metadata.
-* Workflow execution: menjalankan pipeline dari raw events menjadi replay metadata.
+* Reasoning: memahami urutan session, konteks event, dan memutuskan langkah berikutnya.
+* Decision-making: memilih tool mana yang dipanggil secara dinamis berdasarkan state saat ini.
+* Tool usage: memanggil internal tools secara otonom untuk analisis, deteksi, generasi, dan publikasi.
+* Autonomous loop: iterate sampai self-evaluation menunjukkan output lengkap dan berkualitas.
+* Self-evaluation: mengecek kelengkapan output sendiri dan loop back jika ada yang kurang.
 * Summarization: membuat notes dan chapter title.
 * Navigation intelligence: membantu manusia menemukan momen penting.
+* Visible reasoning: setiap keputusan di-log sebagai reasoning trace yang dapat ditampilkan di UI.
 
 ### Important Constraint
 
-Replay Assistant Agent tidak memberi keputusan benar/salah terhadap pekerjaan coding agent. Agent hanya membantu navigasi replay.
+lens-agent tidak memberi keputusan benar/salah terhadap pekerjaan coding agent. Agent hanya membantu navigasi replay.
+
+### Cost Constraint
+
+Agent harus cost-effective karena berjalan di samping agen utama. Biaya per session harus negligible (~$0.001 atau kurang). Strategi:
+
+* Gunakan model murah (GPT-4o-mini, Claude Haiku, atau Gemini Flash).
+* Rule-based tools untuk heavy computation (0 token cost).
+* LLM hanya untuk orchestration, text generation, dan self-evaluation.
+* Event compression sebelum masuk LLM context.
+* Max iterations dibatasi (maxSteps: 8).
 
 ---
 
-## 14.2 Agent Responsibilities
+## 14.2 Agent Architecture
 
-Replay Assistant Agent melakukan:
+### Framework
 
-1. Compress raw events into human-readable summaries.
-2. Classify event categories.
-3. Detect phase transitions.
-4. Identify review-worthy moments.
-5. Explain why a marker exists.
-6. Generate lightweight chapters.
-7. Generate concise session notes.
-8. Apply or validate redaction metadata.
-9. Publish replay metadata for the UI.
+Vercel AI SDK (`ai` package) dengan `generateText()` + `tools` + `maxSteps` pattern.
 
----
+Alasan pemilihan:
 
-## 14.3 Agent Tools
+* TypeScript-native, integrates dengan Next.js stack yang sudah ada.
+* Built-in autonomous loop via `maxSteps` parameter.
+* Supports model murah (GPT-4o-mini, Claude Haiku, Gemini Flash).
+* Minimal boilerplate (2 packages: `ai` + `@ai-sdk/openai`).
+
+### Execution Model
 
 ```text
-get_session_events(session_id)
-normalize_events(events)
-classify_events(events)
-detect_sensitive_events(events)
-redact_event_payloads(events)
-detect_markers(events)
-generate_chapters(events)
-generate_session_notes(events, chapters, markers)
-publish_replay_metadata(session_id, metadata)
+POST /api/sessions/[sessionId]/process
+  │
+  ├─ 1. Fetch events from Supabase
+  ├─ 2. Compress events into summary (rule-based, 0 tokens)
+  ├─ 3. generateText({ model, tools, maxSteps: 8 })
+  │     │
+  │     ├─ Agent reasons → calls analyze_event_patterns (rule-based)
+  │     ├─ Agent reasons → calls detect_review_markers (rule-based)
+  │     ├─ Agent reasons → calls generate_chapters (hybrid: rules + LLM titles)
+  │     ├─ Agent reasons → calls calculate_behavior_summary (rule-based)
+  │     ├─ Agent reasons → calls generate_session_notes (LLM)
+  │     ├─ Agent reasons → calls evaluate_completeness (rule-based)
+  │     │   └─ If incomplete → agent loops back to fill gaps
+  │     └─ Agent reasons → calls publish_replay_metadata (DB write)
+  │
+  └─ 4. Return result with reasoning trace
 ```
+
+Agent memilih tool order sendiri. Urutan di atas adalah typical flow, bukan hardcoded sequence. Agent dapat skip tools yang tidak relevan atau loop back jika self-evaluation menunjukkan output kurang lengkap.
+
+### Event Compression Layer
+
+Sebelum events masuk ke LLM context, raw events dikompresi menjadi structured summary:
+
+* ≤50 events: semua dimasukkan ke timeline.
+* 50–200 events: sampling dengan error events selalu preserved.
+* >200 events: chunked into windows, summarized per window, first/last 10 events verbatim.
+
+Ini memastikan LLM prompt selalu <2000 tokens event context, regardless session size.
+
+### Reasoning Trace
+
+Setiap keputusan agent (tool call + alasan) di-capture dan disimpan ke database. Reasoning trace berisi:
+
+* Step number.
+* Tool yang dipanggil.
+* Alasan agent memilih tool tersebut (dari LLM text output sebelum tool call).
+* Ringkasan hasil tool.
+* Timestamp.
+
+Reasoning trace disimpan di `replay_metadata` dan dapat ditampilkan di UI sebagai collapsible "Agent Reasoning" panel.
 
 ---
 
-## 14.4 Replay Assistant Workflow
+## 14.3 Agent Responsibilities
+
+lens-agent melakukan:
+
+1. Compress raw events into structured summaries (pre-LLM, rule-based).
+2. Analyze event patterns (loops, retries, stuck periods, phases).
+3. Detect Needs Review markers (rule-based triggers).
+4. Generate lightweight chapters (rule-based phase detection + LLM titles).
+5. Calculate behavior summary metrics (rule-based counting).
+6. Generate concise session notes (LLM summarization).
+7. Self-evaluate completeness (rule-based checklist).
+8. Publish replay metadata to database.
+9. Capture and store reasoning trace.
+
+---
+
+## 14.4 Agent Tools
+
+Tools dipanggil secara **dinamis** oleh LLM — bukan sequential hardcoded. Agent memilih tool berikutnya berdasarkan reasoning tentang state saat ini.
 
 ```text
-1. Load session events
-2. Normalize event sequence
-3. Redact sensitive display payloads
-4. Classify event categories
-5. Detect Needs Review markers
-6. Detect phase transitions
-7. Generate lightweight chapters
-8. Generate short AI session notes
-9. Save replay metadata
-10. Publish replay-ready state
+analyze_event_patterns()    — Rule-based: scan for loops, retries, phases, stuck periods
+detect_review_markers()     — Rule-based: find review-worthy moments based on triggers
+generate_chapters()         — Hybrid: rule-based phase detection + LLM title generation
+calculate_behavior_summary() — Rule-based: count metrics (read/edit/run/fail/fix/verify)
+generate_session_notes()    — LLM: summarize session in 3-5 bullets
+evaluate_completeness()     — Rule-based: check what's been done, score 0-100, list gaps
+publish_replay_metadata()   — DB write: save all results to Supabase tables
 ```
+
+### Tool Cost Profile
+
+| Tool | Method | Token Cost |
+|------|--------|-----------|
+| analyze_event_patterns | Rule-based | 0 |
+| detect_review_markers | Rule-based | 0 |
+| generate_chapters | Hybrid (rules + LLM titles) | ~200 |
+| calculate_behavior_summary | Rule-based | 0 |
+| generate_session_notes | LLM | ~400 |
+| evaluate_completeness | Rule-based | 0 |
+| publish_replay_metadata | DB write | 0 |
+| Agent orchestration (system + decisions) | LLM | ~500 |
+| **Total per session** | | **~1100 tokens** |
 
 ---
 
-## 14.5 Rule-based Marker Detection
+## 14.5 lens-agent Workflow
+
+Agent beroperasi dalam autonomous loop, bukan fixed pipeline. Typical flow:
+
+```text
+1. [Pre-processing] Fetch session events from DB
+2. [Pre-processing] Compress events into structured summary
+3. [Agent Loop Start] generateText with tools and maxSteps: 8
+4. Agent decides → analyze_event_patterns (understand session structure)
+5. Agent decides → detect_review_markers (find important moments)
+6. Agent decides → generate_chapters (create phase structure)
+7. Agent decides → calculate_behavior_summary (compute metrics)
+8. Agent decides → generate_session_notes (write human summary)
+9. Agent decides → evaluate_completeness (self-check: score >= 80?)
+   └─ If score < 80 → agent loops back to fill gaps
+10. Agent decides → publish_replay_metadata (save to DB)
+11. [Post-processing] Update session status to replay_ready
+```
+
+### Edge Case Handling
+
+* **< 5 events**: Minimal output (1 chapter, basic notes, no loop detection possible).
+* **> 200 events**: Chunked compression, full rule-based analysis on all events.
+* **All green (no failures)**: Informational markers only, clean session notes.
+* **All stuck (only failures)**: Heavy markers, single "Repeated attempts" chapter.
+* **0 events**: Skip agent entirely, set replay_ready with empty metadata.
+
+---
+
+## 14.6 Rule-based Marker Detection
 
 ```text
 if event.type == "file_write" and first_write:
@@ -1268,23 +1426,32 @@ if command contains rm -rf or destructive pattern:
 
 ---
 
-## 14.6 LLM Usage
+## 14.7 LLM Usage
 
-LLM hanya digunakan untuk:
+LLM digunakan untuk:
 
-* chapter titles,
-* chapter summaries,
-* session notes,
-* human-readable marker reasons.
+* **Agent orchestration**: memilih tool berikutnya berdasarkan reasoning (~500 tokens).
+* **Chapter titles dan summaries**: generate nama fase yang natural (~200 tokens).
+* **Session notes**: rangkuman session 3-5 bullet (~400 tokens).
+* **Human-readable marker reasons**: penjelasan singkat kenapa marker penting.
 
 LLM tidak digunakan untuk:
 
 * judge correctness,
 * approve/reject code,
 * deep code review,
-* full raw log analysis.
+* full raw log analysis,
+* event classification (rule-based),
+* marker detection (rule-based),
+* behavior summary calculation (rule-based).
 
-Jangan kirim full raw logs ke LLM. Kirim compressed event summaries.
+### Cost Control Rules
+
+* Jangan kirim full raw logs ke LLM. Kirim compressed event summaries.
+* Gunakan model murah: GPT-4o-mini (primary), Claude Haiku atau Gemini Flash (fallback).
+* Max iterations: 8 steps per session.
+* Temperature: 0.1 (consistent, low-verbosity output).
+* Total cost target: ~1100 tokens per session (~$0.001).
 
 ---
 
@@ -1292,31 +1459,39 @@ Jangan kirim full raw logs ke LLM. Kirim compressed event summaries.
 
 ## Flow 1 — Start Recording
 
-1. Developer berada di agent harness.
-2. Developer menjalankan `/record start`.
-3. MCP server atau skill bridge memanggil backend Looma.
-4. Looma membuat session.
+1. Developer berada di agent harness (Claude Code, Codex, dll).
+2. Developer menjalankan `/record start` atau memanggil MCP tool `record_start`.
+3. MCP server membuat session baru di Looma backend.
+4. MCP server menulis session ID ke `~/.looma/active_session`.
 5. UI menampilkan session sebagai `LIVE`.
+6. Hooks mulai aktif — setiap tool call agent otomatis ter-capture.
 
 ---
 
 ## Flow 2 — Agent Works Autonomously
 
-1. Coding agent menerima task.
+1. Coding agent menerima task dari user.
 2. Agent membaca file, menjalankan tool, mengedit file, menjalankan command, dan menjalankan test.
-3. MCP/skill bridge mengirim event ke Looma.
-4. Looma menyimpan event.
-5. UI live event stream update secara real-time.
+3. Hooks (`PostToolCall`) otomatis mengirim setiap action sebagai event ke Looma API.
+4. Looma menyimpan event dengan redaction.
+5. UI live event stream update secara real-time via Supabase Realtime.
+6. User dapat melakukan follow-up prompts — recording tetap berjalan.
+7. Semua events dari semua tasks dalam session terus direkam sampai explicit stop.
 
 ---
 
 ## Flow 3 — Session Completed
 
-1. Developer atau harness menjalankan `/record stop`.
-2. Session status berubah menjadi `completed`.
-3. Replay Assistant Agent memproses event.
-4. Sistem menghasilkan chapters, markers, behavior map, dan session notes.
-5. Replay link siap dibuka.
+1. Developer menjalankan `/record stop` atau memanggil MCP tool `record_stop`.
+2. MCP server menghapus `~/.looma/active_session`.
+3. Session status berubah menjadi `processing`.
+4. lens-agent berjalan (autonomous loop):
+   * Agent memilih tools secara dinamis.
+   * Agent menganalisis patterns, mendeteksi markers, generate chapters dan notes.
+   * Agent self-evaluate dan iterate jika output belum lengkap.
+   * Agent publish metadata ke database.
+5. Session status berubah menjadi `replay_ready`.
+6. Replay link siap dibuka.
 
 ---
 
@@ -1347,7 +1522,7 @@ Jangan kirim full raw logs ke LLM. Kirim compressed event summaries.
 
 1. Developer upload JSON/JSONL transcript dari session agent.
 2. Looma menormalisasi event.
-3. Replay Assistant Agent membuat markers, chapters, dan notes.
+3. lens-agent membuat markers, chapters, dan notes.
 4. Developer mendapat replay link.
 5. Developer dapat membagikan replay artifact.
 
@@ -1726,6 +1901,8 @@ updated_at
 
 Looma menggunakan normalized event schema agar session dari berbagai coding agents dapat direplay dalam UI yang sama.
 
+> Catatan: `workspacePath` dan `relatedFile` di bawah merepresentasikan file pada **workspace agent yang sedang direkam** (apa pun strukturnya, termasuk `src/`). Layout kode **Looma sendiri** mengikuti §22 *Frontend Codebase Layout* — tanpa `src/`.
+
 ### Base Event
 
 ```json
@@ -2043,6 +2220,36 @@ react-diff-viewer or diff2html
 
 framer-motion digunakan untuk: viewport mode transitions, event list animations, recording indicator pulse, marker highlight animations, timeline scrubbing smoothness, card hover states.
 
+### Frontend Codebase Layout
+
+Looma adalah monorepo Bun. UI utama berada di `apps/web/` (package `@looma/web`) dengan **arsitektur feature-based Bulletproof React**, **tanpa folder `src/`**. Alias impor `@/` mengarah ke root `apps/web`.
+
+```text
+apps/web/
+├── app/         # Next.js App Router (route, layout, route handler)
+├── components/  # UI bersama (presentational, termasuk components/ui/* shadcn)
+├── features/    # modul fitur per domain (api/, components/, hooks/, types/, utils/)
+├── providers/   # client provider (TanStack Query, theme, dll)
+├── config/      # konstanta + env validation (Zod)
+├── hooks/       # hooks bersama lintas feature
+├── lib/         # wrapper library pihak ketiga (Supabase, helper API)
+├── stores/      # client state global (Zustand/Jotai)
+├── types/       # tipe TypeScript bersama
+├── utils/       # fungsi murni bersama
+├── assets/      # asset yang di-bundle (SVG-as-component, font lokal)
+├── testing/     # util tes, mock factories, MSW handlers
+└── public/      # asset statis URL
+```
+
+Aturan utama:
+
+* Alur impor satu arah: `shared → features → app`.
+* **Tidak ada impor silang antar-feature.** `features/A` dilarang mengimpor dari `features/B`; promosikan kode bersama ke folder shared.
+* Komposisi feature dilakukan di route segment `app/`.
+* `packages/shared` (`@looma/shared`) tetap shared workspace di luar boundary `features/`.
+
+Konvensi rinci, ringkasan aturan performa Vercel, dan checklist PR berada di [`AGENTS.md`](../AGENTS.md) di root repo.
+
 ## Backend
 
 ```text
@@ -2051,7 +2258,8 @@ TypeScript
 Zod
 Supabase JS
 @supabase/ssr
-Vercel AI SDK
+Vercel AI SDK (ai)
+@ai-sdk/openai
 ```
 
 ## Database and Realtime
@@ -2063,11 +2271,12 @@ Supabase Realtime
 Supabase Storage optional
 ```
 
-## MCP Server
+## MCP Server + Hook Bridge
 
 ```text
 TypeScript MCP SDK
 Node.js runtime
+Hook bridge script (PostToolCall → Looma API)
 ```
 
 ## AI Model
@@ -2075,13 +2284,21 @@ Node.js runtime
 Use small hosted model for reliability and cost-effectiveness:
 
 ```text
-GPT-4.1 mini
-GPT-4o mini
-Claude Haiku
-Gemini Flash
+GPT-4o mini (primary — cheapest, fastest)
+Claude Haiku (fallback)
+Gemini Flash (fallback)
 ```
 
-For MVP, most marker detection should be rule-based. LLM is only used for lightweight naming, notes, and reasons.
+### Agent Loop Configuration
+
+```text
+Framework: Vercel AI SDK generateText() + tools + maxSteps
+Max steps: 8
+Temperature: 0.1
+Cost per session: ~1100 tokens (~$0.001)
+```
+
+For MVP, most marker detection should be rule-based. LLM is only used for agent orchestration (tool selection), lightweight naming, notes, and reasons.
 
 Loop/retry detection should start rule-based and conservative. MVP signals can combine command similarity, touched-file overlap, repeated failure signatures, unchanged test output, and repeated edits after failure. The marker should avoid saying the agent is wrong; it should only say the segment deserves human review because progress appears low.
 
@@ -2093,19 +2310,34 @@ Loop/retry detection should start rule-based and conservative. MVP signals can c
 Agent Harness
 Claude Code / Codex / OpenCode / OpenClaw / Cline / Aider
         ↓
-MCP Server / /record Skill / Hooks / Adapter / JSON Import
+┌───────────────────────────────────────────┐
+│  Hybrid Capture Layer                      │
+│                                            │
+│  MCP Tools (explicit)                      │
+│    record_start / record_stop              │
+│    → User controls session lifecycle       │
+│                                            │
+│  Hooks (implicit, automatic)               │
+│    PostToolCall → hook-bridge → API        │
+│    → Every agent action auto-captured      │
+│                                            │
+│  State: ~/.looma/active_session            │
+└───────────────────────────────────────────┘
         ↓
 Event Normalization Layer
         ↓
-Event Ingestion API
+Event Ingestion API (real-time, deterministic)
         ↓
 Redaction Pipeline
         ↓
-Supabase Postgres + Realtime
+Supabase Postgres + Realtime → Frontend Live UI
+        ↓ (after record_stop)
+lens-agent (autonomous loop, Vercel AI SDK)
+  ├─ Rule-based tools (patterns, markers, summary)
+  ├─ LLM tools (chapters, notes)
+  └─ Self-evaluation + reasoning trace
         ↓
-Replay Assistant Agent
-        ↓
-Replay Metadata: chapters, markers, notes, behavior map
+Replay Metadata: chapters, markers, notes, behavior map, reasoning trace
         ↓
 Next.js Replay Session Page
         ↓
@@ -2129,6 +2361,8 @@ Shareable Replay Artifact
 * Stop session API.
 * Replay API.
 * Real MCP server (record_start, record_event, record_stop) functional with Claude Code.
+* Hook bridge for automatic event capture (PostToolCall → Looma API).
+* Active session file mechanism (~/.looma/active_session).
 * Simulated `/record` trigger (fallback).
 * Live event stream.
 * Replay session page.
@@ -2141,6 +2375,11 @@ Shareable Replay Artifact
 * Lightweight chapters.
 * AI Session Notes.
 * Behavior map.
+* lens-agent with autonomous loop (Vercel AI SDK + generateText + tools + maxSteps).
+* Agent dynamic tool calling (7 tools, agent picks order).
+* Agent self-evaluation loop (evaluate_completeness).
+* Agent reasoning trace captured and stored.
+* Event compression layer (cost control).
 * Import JSON/JSONL transcript.
 * Basic redaction for secrets/tokens/env values.
 * Share replay link.
@@ -2158,6 +2397,8 @@ Shareable Replay Artifact
 * Embed snippet (iframe code).
 * Before/after comparison on landing page.
 * Editor mode typing animation (character-by-character).
+* Agent reasoning trace displayed in UI (collapsible panel).
+* Auto-stop timeout (30 min no activity).
 * Google OAuth.
 * README with reproducible setup.
 * Deployed demo on Vercel.
@@ -2167,7 +2408,6 @@ Shareable Replay Artifact
 * Browser mode in viewport.
 * Full typing animation speed matching real agent speed.
 * Export replay JSON.
-* Claude Code hook adapter.
 * Codex/OpenCode adapter.
 * Comment on replay timestamp.
 * PR link integration.
@@ -2276,7 +2516,7 @@ Show:
 Show:
 
 ```text
-agent harness → recorder bridge → event normalization → redaction → Replay Assistant Agent → replay artifact
+agent harness → recorder bridge → event normalization → redaction → lens-agent → replay artifact
 ```
 
 ## Slide 5 — Differentiation and Future
@@ -2303,6 +2543,7 @@ Future:
 ## Demo Success
 
 * A session can be recorded from start to finish via real MCP integration.
+* Hooks automatically capture agent events without agent needing to call record_event explicitly.
 * At least 20 events are captured.
 * Reconstructed screen replay switches modes (terminal/editor/diff) with smooth transitions.
 * Timeline displays colored segments (green/yellow/red).
@@ -2310,6 +2551,9 @@ Future:
 * At least 3 Needs Review markers are detected.
 * AI Session Notes are generated.
 * Behavior map is generated.
+* lens-agent demonstrates autonomous loop (visible in reasoning trace).
+* lens-agent calls tools dynamically (not fixed sequence).
+* Reasoning trace is stored and can be displayed.
 * Replay link can be opened and shared.
 * JSON/JSONL transcript can be imported.
 * "Jump to Interesting" button navigates to first marker.
@@ -2334,29 +2578,33 @@ Future:
 
 ## Hour 0–1: Setup + Auth + MCP Server
 
-* Create GitHub repository.
-* Setup Next.js + Tailwind + shadcn/ui + framer-motion.
+* Create GitHub repository (monorepo Bun: `apps/*` + `packages/*`).
+* Setup Next.js + Tailwind + shadcn/ui + framer-motion di `apps/web/` mengikuti layout Bulletproof (lihat §22 Frontend Codebase Layout) — tanpa folder `src/`.
 * Configure dark mode as default (Tailwind dark class).
 * Setup Supabase schema + Supabase Auth (email + password).
-* Create login/signup pages.
-* Setup Next.js middleware for route protection.
-* Create MCP server skeleton (record_start, record_event, record_stop).
-* Define shared event schema + Zod types.
+* Create login/signup pages di `apps/web/app/login` dan `apps/web/app/signup`.
+* Setup Next.js middleware for route protection (`apps/web/middleware.ts`).
+* Create MCP server skeleton (record_start, record_event, record_stop) di `packages/mcp-server`.
+* Create hook bridge script (PostToolCall → Looma API).
+* Define shared event schema + Zod types di `packages/shared` (`@looma/shared`).
 
 ## Hour 1–3: Backend + App Pages Shell
 
-* Create session API (with user_id).
+* Create session API route handler di `apps/web/app/api/sessions/` (with user_id).
 * Create event ingestion API.
 * Create stop session API.
 * Create replay API.
 * Create import transcript API.
 * MCP server fully functional with Claude Code.
-* Add Zod schemas + sample event JSON.
-* Build top navbar component.
-* Build Dashboard page (recent sessions, activity chart, quick actions).
-* Build Sessions page (card grid, filter, search).
+* Hook bridge functional (reads ~/.looma/active_session, sends events).
+* Add Zod schemas + sample event JSON di `@looma/shared` atau `apps/web/config/`.
+* Build top navbar component di `apps/web/components/`.
+* Build Dashboard page → komposisi di `apps/web/app/dashboard/page.tsx`, komponen domain di `apps/web/features/dashboard/components/`.
+* Build Sessions page → `apps/web/app/sessions/page.tsx` + `apps/web/features/sessions/`.
 
 ## Hour 3–6: Reconstructed Screen Replay UI
+
+Komponen replay tinggal di `apps/web/features/replay/` (komponen domain) dan `apps/web/components/` (primitives bersama). Library berat (Monaco/CodeMirror, xterm.js, react-diff-viewer) dibungkus `next/dynamic` agar tidak masuk bundle awal — selaras Vercel `bundle-dynamic-imports`.
 
 * Build single viewport component with mode switching.
 * Terminal mode (xterm.js + typing animation).
@@ -2369,16 +2617,28 @@ Future:
 * Recording indicator (red pulse + event counter + RECORDING badge).
 * "Jump to Interesting" button.
 
-## Hour 6–8: Replay Assistant + Loop Detection
+## Hour 6–8: lens-agent (Agentic Implementation)
 
-* Rule-based marker detection.
-* Loop/retry detection logic (command similarity, file overlap, error output matching).
-* Timeline segment coloring based on detection results.
-* Needs Review logic.
-* Chapter generation (rule-based phase detection + LLM titles).
-* Behavior summary calculation.
-* LLM session notes generation.
-* Save replay metadata.
+Tools dan orkestrator lens-agent tinggal di `apps/web/features/lens-agent/` (atau `apps/web/lib/lens-agent/` jika dianggap shared infrastructure). Route handler entry point: `apps/web/app/api/sessions/[sessionId]/process/route.ts`.
+
+* Install Vercel AI SDK (`ai` + `@ai-sdk/openai`).
+* Create AI provider config (GPT-4o-mini).
+* Create event compressor (raw events → structured summary).
+* Create rule-based tools:
+  * analyze_event_patterns (loop/retry/phase detection).
+  * detect_review_markers (Needs Review triggers).
+  * calculate_behavior_summary (metrics counting).
+  * evaluate_completeness (self-check).
+* Create LLM-powered tools:
+  * generate_chapters (phase detection + LLM titles).
+  * generate_session_notes (LLM summarization).
+* Create publish_replay_metadata tool (DB write).
+* Create agent orchestrator (generateText + tools + maxSteps: 8).
+* Create system prompt with decision framework.
+* Capture reasoning trace from agent steps.
+* Integrate with /api/sessions/[sessionId]/process route.
+* Timeline segment coloring based on pattern detection results.
+* Test with sample session data.
 
 ## Hour 8–9: Aha Moment + Landing Page
 
@@ -2537,7 +2797,7 @@ Add adapters for:
 * Access control.
 * Retention policies.
 
-## 30.6 Smarter Replay Assistant
+## 30.6 Smarter lens-agent
 
 * Better phase detection.
 * Error recovery detection.
