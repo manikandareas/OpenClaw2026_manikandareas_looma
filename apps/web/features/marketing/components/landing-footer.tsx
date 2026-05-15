@@ -78,7 +78,7 @@ export function LandingFooter() {
   const reduce = useReducedMotion();
 
   return (
-    <footer className="w-full bg-[#FDFCFC]">
+    <footer className="w-full bg-background">
       <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-x-10 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-12 lg:gap-y-0 xl:gap-x-16">
           <motion.div
@@ -97,7 +97,7 @@ export function LandingFooter() {
             >
               <Link
                 href="/"
-                className="inline-block text-xl font-semibold tracking-normal text-black"
+                className="inline-block text-xl font-semibold tracking-normal text-foreground"
               >
                 Looma
               </Link>
@@ -122,7 +122,7 @@ export function LandingFooter() {
                 }}
               >
                 <motion.h3
-                  className="text-sm font-medium leading-snug text-[#57534E]"
+                  className="text-sm font-medium leading-snug text-muted-foreground"
                   initial={reduce ? false : { opacity: 0, x: drift * -10 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, amount: 0.9 }}
@@ -164,7 +164,7 @@ export function LandingFooter() {
                       >
                         <Link
                           href={footerHrefFor(label)}
-                          className="text-sm leading-snug text-[#44403C] transition-colors hover:text-black"
+                          className="text-sm leading-snug text-muted-foreground transition-colors hover:text-foreground"
                         >
                           {label}
                         </Link>

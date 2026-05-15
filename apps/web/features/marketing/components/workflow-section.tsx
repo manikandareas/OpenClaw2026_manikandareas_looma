@@ -24,13 +24,13 @@ export function WorkflowSection() {
   return (
     <section
       id="workflow"
-      className="w-full scroll-mt-[72px] bg-[#FDFCFC] py-12 sm:py-16 lg:py-20"
+      className="w-full scroll-mt-[72px] bg-background py-12 sm:py-16 lg:py-20"
     >
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:py-5">
           <div className="min-w-0 max-w-2xl lg:max-w-[min(100%,40rem)]">
             <motion.p
-              className="text-[15px] leading-snug text-[#57534E] sm:text-base"
+              className="text-[15px] leading-snug text-muted-foreground sm:text-base"
               initial={
                 reduce
                   ? false
@@ -42,7 +42,7 @@ export function WorkflowSection() {
             >
               How it works
             </motion.p>
-            <h2 className="font-display mt-3 max-w-[min(100%,34rem)] text-[2.75rem] font-normal leading-[1.08] tracking-[-0.02em] text-black sm:mt-4 sm:text-5xl sm:leading-[1.06] lg:text-[3.25rem] lg:leading-[1.05] xl:text-[3.5rem]">
+            <h2 className="font-display mt-3 max-w-[min(100%,34rem)] text-[2.75rem] font-normal leading-[1.08] tracking-[-0.02em] text-foreground sm:mt-4 sm:text-5xl sm:leading-[1.06] lg:text-[3.25rem] lg:leading-[1.05] xl:text-[3.5rem]">
               {workflowTitleParts.map((part, i) => (
                 <span key={part}>
                   <motion.span
@@ -89,7 +89,7 @@ export function WorkflowSection() {
             <Button
               asChild
               variant="outline"
-              className="h-10 w-fit shrink-0 rounded-full border-[#E0DFDD] bg-white px-5 text-sm text-black shadow-[0_2px_10px_rgb(0_0_0/0.05)] hover:bg-[#F5F3F1] sm:h-11 sm:px-6 sm:text-base"
+              className="h-10 w-fit shrink-0 rounded-full px-5 text-sm shadow-sm sm:h-11 sm:px-6 sm:text-base"
             >
               <Link href="/import">Explore docs</Link>
             </Button>

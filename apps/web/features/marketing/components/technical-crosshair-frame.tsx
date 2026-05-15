@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export const TECHNICAL_FRAME_LINE_OUT = 48;
-export const TECHNICAL_FRAME_LINE_COLOR = "bg-[#E8E8E6]";
+export const TECHNICAL_FRAME_LINE_COLOR = "bg-border";
 
 /** Garis horizontal di dalam frame: selebar konten + overflow kiri/kanan; titik di persimpangan dengan garis vertikal frame. */
 export function TechnicalFrameHorizontalRule() {
@@ -26,12 +26,12 @@ export function TechnicalFrameHorizontalRule() {
       />
       <span
         aria-hidden
-        className="pointer-events-none absolute top-1/2 z-[1] size-[3px] -translate-x-1/2 -translate-y-1/2 bg-black"
+        className="pointer-events-none absolute top-1/2 z-[1] size-[3px] -translate-x-1/2 -translate-y-1/2 bg-foreground"
         style={{ left: o }}
       />
       <span
         aria-hidden
-        className="pointer-events-none absolute top-1/2 z-[1] size-[3px] translate-x-1/2 -translate-y-1/2 bg-black"
+        className="pointer-events-none absolute top-1/2 z-[1] size-[3px] translate-x-1/2 -translate-y-1/2 bg-foreground"
         style={{ right: o }}
       />
     </div>
@@ -74,19 +74,19 @@ export function TechnicalCrosshairFrame({
       />
       <span
         aria-hidden
-        className="pointer-events-none absolute left-0 top-0 z-0 size-[3px] -translate-x-1/2 -translate-y-1/2 bg-black"
+        className="pointer-events-none absolute left-0 top-0 z-0 size-[3px] -translate-x-1/2 -translate-y-1/2 bg-foreground"
       />
       <span
         aria-hidden
-        className="pointer-events-none absolute right-0 top-0 z-0 size-[3px] translate-x-1/2 -translate-y-1/2 bg-black"
+        className="pointer-events-none absolute right-0 top-0 z-0 size-[3px] translate-x-1/2 -translate-y-1/2 bg-foreground"
       />
       <span
         aria-hidden
-        className="pointer-events-none absolute bottom-0 left-0 z-0 size-[3px] -translate-x-1/2 translate-y-1/2 bg-black"
+        className="pointer-events-none absolute bottom-0 left-0 z-0 size-[3px] -translate-x-1/2 translate-y-1/2 bg-foreground"
       />
       <span
         aria-hidden
-        className="pointer-events-none absolute bottom-0 right-0 z-0 size-[3px] translate-x-1/2 translate-y-1/2 bg-black"
+        className="pointer-events-none absolute bottom-0 right-0 z-0 size-[3px] translate-x-1/2 translate-y-1/2 bg-foreground"
       />
       <div className={cn("relative z-10", contentClassName)}>{children}</div>
     </div>

@@ -1,7 +1,11 @@
 "use client";
 
-import { Toaster } from "sonner";
+import { useTheme } from "next-themes";
+import { Toaster, type ToasterProps } from "sonner";
 
 export function AppToaster() {
-  return <Toaster theme="dark" richColors position="top-center" />;
+  const { resolvedTheme } = useTheme();
+  const theme = (resolvedTheme ?? "system") as ToasterProps["theme"];
+
+  return <Toaster theme={theme} richColors position="top-center" />;
 }

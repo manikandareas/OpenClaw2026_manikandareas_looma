@@ -52,8 +52,13 @@ function ReplayPlayer({
 
   const isLive = session.status === "recording";
   const currentSeq = currentEvent?.seq ?? null;
-  const viewportHeightClass = embedded ? "min-h-[420px]" : "min-h-[500px]";
-  const viewportInnerHeightClass = embedded ? "h-[420px]" : "h-[500px]";
+  const stageHeightClass = embedded
+    ? "min-h-[430px] sm:min-h-[470px]"
+    : "min-h-[470px] sm:min-h-[560px] lg:min-h-[610px]";
+  const stagePaddingClass = embedded ? "p-2 sm:p-4" : "p-2 sm:p-5 lg:p-8";
+  const windowHeightClass = embedded
+    ? "h-[360px] sm:h-[385px]"
+    : "h-[400px] sm:h-[455px] lg:h-[500px]";
 
   return (
     <div className={embedded ? "space-y-3" : "space-y-4"}>
@@ -93,27 +98,38 @@ function ReplayPlayer({
         <div className="space-y-3">
           {/* Viewport Chrome */}
           <div
-            className={`relative overflow-hidden rounded-xl border border-border bg-black ${viewportHeightClass}`}
+            className={`relative flex items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-cover bg-center shadow-2xl ${stageHeightClass} ${stagePaddingClass}`}
+            style={{ backgroundImage: "url('/replay-wallpapers/cottage-meadow.jpg')" }}
           >
-            {/* Mode Badge */}
-            <div className="absolute right-3 top-3 z-10">
-              <ModeBadge mode={state.currentMode} />
-            </div>
-
-            {/* File Breadcrumb */}
-            {(state.currentMode === "editor" || state.currentMode === "diff") && (
-              <div className="absolute left-3 top-3 z-10">
-                <FileBreadcrumb file={state.currentFile} />
+            <div className="absolute inset-0 bg-black/35" />
+            <div
+              className={`relative z-10 flex w-full max-w-[1120px] flex-col overflow-hidden rounded-lg border border-white/15 bg-[#090b10]/95 shadow-[0_28px_90px_rgba(0,0,0,0.55)] backdrop-blur-sm sm:w-[92%] lg:w-[86%] ${windowHeightClass}`}
+            >
+              <div className="flex h-10 shrink-0 items-center justify-between gap-3 border-b border-white/10 bg-white/[0.06] px-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className="flex shrink-0 items-center gap-1.5" aria-hidden="true">
+                    <span className="h-3 w-3 rounded-full bg-[#ff5f57]" />
+                    <span className="h-3 w-3 rounded-full bg-[#febc2e]" />
+                    <span className="h-3 w-3 rounded-full bg-[#28c840]" />
+                  </div>
+                  {(state.currentMode === "editor" || state.currentMode === "diff") && (
+                    <div className="ml-1 hidden min-w-0 sm:block">
+                      <FileBreadcrumb file={state.currentFile} />
+                    </div>
+                  )}
+                </div>
+                <div className="shrink-0">
+                  <ModeBadge mode={state.currentMode} />
+                </div>
               </div>
-            )}
 
-            {/* Viewport */}
-            <div className={viewportInnerHeightClass}>
-              <ReplayViewport
-                mode={state.currentMode}
-                event={currentEvent}
-                speed={state.speed}
-              />
+              <div className="min-h-0 flex-1">
+                <ReplayViewport
+                  mode={state.currentMode}
+                  event={currentEvent}
+                  speed={state.speed}
+                />
+              </div>
             </div>
           </div>
 

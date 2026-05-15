@@ -49,20 +49,20 @@ export function LandingDemoSessionPreview({
   return (
     <div
       className={cn(
-        "rounded-md bg-black p-4 text-white",
+        "rounded-md bg-foreground p-4 text-primary-foreground",
         isHero && "flex h-full min-h-0 flex-col p-3 sm:p-4",
         className,
       )}
     >
       <div
         className={cn(
-          "mb-6 flex items-center justify-between text-xs text-white/60",
+          "mb-6 flex items-center justify-between text-xs text-primary-foreground/60",
           isHero && "mb-3 shrink-0 sm:mb-4",
         )}
       >
         <span>session-8f2c</span>
         <span className="flex items-center gap-1.5">
-          <span className="h-2 w-2 rounded-full bg-[#F41A2F]" />
+          <span className="h-2 w-2 rounded-full bg-destructive" />
           recording
         </span>
       </div>
@@ -90,18 +90,18 @@ export function LandingDemoSessionPreview({
               >
                 <div
                   className={cn(
-                    "mb-5 flex h-10 w-10 items-center justify-center rounded-md bg-white/10",
+                    "mb-5 flex h-10 w-10 items-center justify-center rounded-md bg-primary-foreground/10",
                     isHero && "mb-3 h-8 w-8 sm:mb-4 sm:h-10 sm:w-10",
                   )}
                 >
                   <Icon className={cn("h-5 w-5", isHero && "h-4 w-4 sm:h-5 sm:w-5")} />
                 </div>
-                <p className="text-xs font-medium uppercase tracking-normal text-white/50">
+                <p className="text-xs font-medium uppercase tracking-normal text-primary-foreground/50">
                   {step.eyebrow}
                 </p>
                 <h3
                   className={cn(
-                    "mt-3 text-2xl font-semibold tracking-normal text-white",
+                    "mt-3 text-2xl font-semibold tracking-normal text-primary-foreground",
                     isHero &&
                       "mt-2 text-lg leading-snug sm:mt-3 sm:text-xl lg:text-2xl",
                   )}
@@ -110,7 +110,7 @@ export function LandingDemoSessionPreview({
                 </h3>
                 <pre
                   className={cn(
-                    "mt-5 whitespace-pre-wrap rounded-md bg-white/8 p-4 font-mono text-xs leading-6 text-[#E0DFDD]",
+                    "mt-5 whitespace-pre-wrap rounded-md bg-primary-foreground/10 p-4 font-mono text-xs leading-6 text-primary-foreground/85",
                     isHero && "mt-3 min-h-0 flex-1 overflow-auto p-3 text-[11px] leading-5 sm:mt-4 sm:p-4 sm:text-xs sm:leading-6",
                   )}
                 >

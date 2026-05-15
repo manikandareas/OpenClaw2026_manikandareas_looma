@@ -7,12 +7,12 @@ import { LandingHeroSection } from "@/features/marketing/components/landing-hero
 import { WorkflowSection } from "@/features/marketing/components/workflow-section";
 
 /**
- * Marketing home composition: route (`app/page.tsx`) stays thin; layout and
- * copy live in feature-scoped components under `features/marketing/components/`.
+ * Marketing home composition: `<main>` lives on `app/page.tsx` with semantic
+ * colors; sections live here under `features/marketing/components/`.
  */
 export function LandingPage() {
   return (
-    <main className="min-h-screen bg-[#FDFCFC] text-black">
+    <>
       <LandingHeader />
       <LandingHeroSection />
       <IntegrationHarnessSection />
@@ -20,6 +20,6 @@ export function LandingPage() {
       <WorkflowSection />
       <BottomCtaSection />
       <LandingFooter />
-    </main>
+    </>
   );
 }

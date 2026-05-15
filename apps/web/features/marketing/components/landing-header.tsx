@@ -16,7 +16,7 @@ export function LandingHeader() {
 
   return (
     <motion.header
-      className="sticky top-0 z-30 bg-[#FDFCFC]/90 backdrop-blur"
+      className="sticky top-0 z-30 bg-background/90 backdrop-blur"
       initial={reduce ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: reduce ? 0 : 0.35, ease: [0.22, 1, 0.36, 1] }}
@@ -32,11 +32,11 @@ export function LandingHeader() {
             mass: 0.55,
           }}
         >
-          <Link href="/" className="text-xl font-semibold tracking-normal">
+          <Link href="/" className="text-xl font-semibold tracking-normal text-foreground">
             Looma
           </Link>
         </motion.div>
-        <nav className="hidden items-center gap-7 text-sm text-[#57534E] md:flex">
+        <nav className="hidden items-center gap-7 text-sm text-muted-foreground md:flex">
           {navItems.map((item, index) => (
             <motion.div
               key={item.href}
@@ -54,7 +54,7 @@ export function LandingHeader() {
               }
             >
               <Link
-                className="inline-block transition-colors hover:text-black"
+                className="inline-block transition-colors hover:text-foreground"
                 href={item.href}
               >
                 {item.label}
@@ -82,7 +82,7 @@ export function LandingHeader() {
               asChild
               variant="ghost"
               size="sm"
-              className="h-9 rounded-full px-4 text-[#57534E] hover:bg-[#F5F3F1] hover:text-black"
+              className="h-9 rounded-full px-4 text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               <Link href="/auth/login">Login</Link>
             </Button>
@@ -92,11 +92,7 @@ export function LandingHeader() {
             whileTap={reduce ? undefined : { scale: 0.97 }}
             transition={{ type: "spring", stiffness: 400, damping: 18 }}
           >
-            <Button
-              asChild
-              size="sm"
-              className="h-9 rounded-full bg-black px-4 text-white shadow-none hover:bg-black/85"
-            >
+            <Button asChild size="sm" className="h-9 rounded-full">
               <Link href="/auth/sign-up">Sign up</Link>
             </Button>
           </motion.div>

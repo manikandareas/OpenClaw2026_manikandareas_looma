@@ -23,11 +23,11 @@ export function IntegrationHarnessSection() {
   const reduce = useReducedMotion();
 
   return (
-    <section className="w-full bg-[#FDFCFC] py-12 sm:py-16 lg:py-20">
+    <section className="w-full bg-background py-12 sm:py-16 lg:py-20">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-5">
           <motion.p
-            className="text-sm font-normal leading-snug text-[#1C1917] sm:text-base sm:leading-snug"
+            className="text-sm font-normal leading-snug text-foreground sm:text-base sm:leading-snug"
             initial={reduce ? false : { opacity: 0, x: -28, rotate: -0.35 }}
             whileInView={{ opacity: 1, x: 0, rotate: 0 }}
             viewport={{ once: true, amount: 0.6 }}
@@ -46,7 +46,7 @@ export function IntegrationHarnessSection() {
             <Button
               asChild
               variant="outline"
-              className="h-10 w-fit shrink-0 rounded-full border-[#E0DFDD] bg-white px-5 text-sm text-black shadow-[0_2px_10px_rgb(0_0_0/0.05)] hover:bg-[#F5F3F1] sm:h-11 sm:px-6 sm:text-base"
+              className="h-10 w-fit shrink-0 rounded-full px-5 text-sm shadow-sm sm:h-11 sm:px-6 sm:text-base"
             >
               <Link href="#workflow">View integrations</Link>
             </Button>
@@ -116,7 +116,7 @@ export function IntegrationHarnessSection() {
                         className="h-7 w-7 object-contain opacity-55 grayscale transition-[opacity,filter] duration-200 group-hover:opacity-100 group-hover:grayscale-0 sm:h-8 sm:w-8"
                       />
                     </motion.div>
-                    <span className="min-w-0 text-left text-sm font-medium leading-snug tracking-normal text-[#78716C] opacity-90 transition-[color,opacity] duration-200 group-hover:text-[#1C1917] group-hover:opacity-100 sm:text-[15px]">
+                    <span className="min-w-0 text-left text-sm font-medium leading-snug tracking-normal text-muted-foreground opacity-90 transition-[color,opacity] duration-200 group-hover:text-foreground group-hover:opacity-100 sm:text-[15px]">
                       {integration.name}
                     </span>
                   </motion.div>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import { QueryProvider } from "@/providers/query-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
 import { AppToaster } from "@/providers/app-toaster";
 import { getAppUrl } from "@/lib/env";
 import "./globals.css";
@@ -40,14 +41,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} font-sans antialiased`}
       >
-        <QueryProvider>
-          {children}
-        </QueryProvider>
-        <AppToaster />
+        <ThemeProvider>
+          <QueryProvider>{children}</QueryProvider>
+          <AppToaster />
+        </ThemeProvider>
       </body>
     </html>
   );

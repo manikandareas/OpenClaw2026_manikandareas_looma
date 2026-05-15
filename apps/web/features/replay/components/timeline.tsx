@@ -74,7 +74,7 @@ export function Timeline({
     <div className="space-y-1.5">
       {/* Chapter labels */}
       {chapters.length > 0 && (
-        <div className="relative h-5 text-[10px] text-muted-foreground">
+        <div className="relative hidden h-5 text-[10px] text-muted-foreground sm:block">
           {chapters.map((chapter) => {
             const startPercent =
               events.length > 0

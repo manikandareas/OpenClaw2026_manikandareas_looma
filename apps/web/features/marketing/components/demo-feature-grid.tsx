@@ -121,7 +121,7 @@ export function DemoFeatureGrid() {
       className="grid gap-3 contain-[layout] sm:gap-4 lg:grid-cols-4"
     >
       <motion.article
-        className="relative flex min-h-[420px] flex-col overflow-hidden rounded-2xl border border-[#E0DFDD] bg-[#F5F3F1] p-5 sm:min-h-[440px] sm:p-6 lg:col-span-2"
+        className="relative flex min-h-[420px] flex-col overflow-hidden rounded-2xl border border-border bg-muted p-5 sm:min-h-[440px] sm:p-6 lg:col-span-2"
         initial="hidden"
         whileInView="visible"
         viewport={inView}
@@ -130,26 +130,26 @@ export function DemoFeatureGrid() {
         <div className="absolute inset-x-0 bottom-0 h-[40%] bg-[radial-gradient(circle_at_20%_15%,#FFAF73_0%,#F41A2F_30%,transparent_58%),radial-gradient(circle_at_64%_54%,#2B7FFF_0%,#6EA4E8_42%,transparent_72%)] opacity-85" />
         <div className="absolute bottom-8 left-0 h-48 w-48 rounded-full bg-[#F41A2F]/20 blur-3xl sm:h-56 sm:w-56" />
         <motion.div
-          className="relative z-10 max-w-[min(100%,520px)] rounded-xl border border-[#E0DFDD] bg-white/95 shadow-[0_12px_28px_rgb(0_0_0/0.07)]"
+          className="relative z-10 max-w-[min(100%,520px)] rounded-xl border border-border bg-card/95 shadow-md"
           variants={card1InnerVariants}
         >
-          <div className="grid min-h-[180px] grid-cols-[1fr_0.38fr] border-b border-[#E9E6E2] sm:min-h-[200px]">
-            <div className="space-y-3 p-5 text-sm leading-relaxed text-[#44403C] sm:text-base sm:leading-snug">
-              <p>
+          <div className="grid min-h-[180px] grid-cols-[1fr_0.38fr] border-b border-border sm:min-h-[200px]">
+            <div className="space-y-3 p-5 text-sm leading-relaxed text-muted-foreground sm:text-base sm:leading-snug">
+              <p className="text-foreground">
                 The agent inspected auth routes, reproduced a failing test, and
                 changed the fallback path.
               </p>
-              <p className="text-xs leading-relaxed text-[#57534E] sm:text-sm sm:leading-snug">
+              <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm sm:leading-snug">
                 Looma keeps the why, where, and verification path attached to the
                 replay.
               </p>
             </div>
-            <div className="border-l border-[#E9E6E2] p-4 sm:p-5">
+            <div className="border-l border-border p-4 sm:p-5">
               <div className="h-full min-h-[120px] rounded-lg bg-[linear-gradient(145deg,#E9F2FF,#FFF1EB_62%,#FFD3C4)] sm:min-h-[140px]" />
             </div>
           </div>
           <div className="p-4 sm:p-5">
-            <div className="mb-3 flex w-fit items-center gap-0.5 rounded-xl border-2 border-black bg-white p-0.5">
+            <div className="mb-3 flex w-fit items-center gap-0.5 rounded-xl border-2 border-foreground bg-card p-0.5">
               {Array.from({ length: 5 }).map((_, index) => (
                 <div
                   key={index}
@@ -158,10 +158,10 @@ export function DemoFeatureGrid() {
               ))}
             </div>
             <div className="grid grid-cols-[1fr_72px] gap-2 sm:grid-cols-[1fr_76px] sm:gap-3">
-              <div className="truncate rounded-lg border border-[#E0DFDD] bg-white px-3 py-2 text-xs leading-snug text-[#57534E] shadow-[0_2px_8px_rgb(0_0_0/0.05)] sm:px-4 sm:py-2.5 sm:text-sm">
+              <div className="truncate rounded-lg border border-border bg-card px-3 py-2 text-xs leading-snug text-muted-foreground shadow-sm sm:px-4 sm:py-2.5 sm:text-sm">
                 auth fallback changed at 08:11 ...
               </div>
-              <div className="flex items-center justify-center rounded-lg border border-[#E0DFDD] bg-white text-[#57534E] shadow-[0_2px_8px_rgb(0_0_0/0.05)]">
+              <div className="flex items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-sm">
                 <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
             </div>
@@ -179,41 +179,41 @@ export function DemoFeatureGrid() {
       </motion.article>
 
       <motion.article
-        className="relative flex min-h-[400px] flex-col justify-between overflow-hidden rounded-2xl border border-[#E0DFDD] bg-[#F5F3F1] p-5 sm:min-h-[420px] sm:p-6 lg:col-span-2"
+        className="relative flex min-h-[400px] flex-col justify-between overflow-hidden rounded-2xl border border-border bg-muted p-5 sm:min-h-[420px] sm:p-6 lg:col-span-2"
         initial="hidden"
         whileInView="visible"
         viewport={inView}
         variants={card2Variants}
       >
         <motion.div
-          className="mx-auto mt-10 w-full max-w-[560px] rounded-xl bg-white p-5 shadow-[0_12px_28px_rgb(0_0_0/0.06)] sm:mt-12 sm:p-6"
+          className="mx-auto mt-10 w-full max-w-[560px] rounded-xl bg-card p-5 shadow-md sm:mt-12 sm:p-6"
           variants={card2InnerVariants}
         >
-          <p className="text-pretty text-sm leading-snug text-black sm:text-base sm:leading-snug">
+          <p className="text-pretty text-sm leading-snug text-foreground sm:text-base sm:leading-snug">
             Needs Review: auth fallback changed after the agent fixed a failing
             test.{" "}
-            <span className="text-[#57534E]">
+            <span className="text-muted-foreground">
               Open the pinned diff, replay the terminal, and confirm the
               behavior before merge.
             </span>
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3 sm:mt-7 sm:gap-4">
-            <span className="rounded-full bg-[#F5F3F1] px-3 py-1.5 text-xs text-black sm:px-4 sm:py-2 sm:text-sm">
+            <span className="rounded-full bg-muted px-3 py-1.5 text-xs text-foreground sm:px-4 sm:py-2 sm:text-sm">
               08:11 marker
             </span>
-            <span className="rounded-full bg-[#F5F3F1] px-3 py-1.5 text-xs text-black sm:px-4 sm:py-2 sm:text-sm">
+            <span className="rounded-full bg-muted px-3 py-1.5 text-xs text-foreground sm:px-4 sm:py-2 sm:text-sm">
               Fix auth route
             </span>
-            <Button className="ml-auto h-11 rounded-full bg-black px-5 text-sm text-white shadow-none hover:bg-black/85 sm:h-12 sm:px-6 sm:text-base">
+            <Button className="ml-auto h-11 rounded-full px-5 text-sm sm:h-12 sm:px-6 sm:text-base">
               Play
             </Button>
           </div>
         </motion.div>
         <div>
-          <h3 className="font-display text-xl font-normal leading-[1.1] tracking-[-0.02em] text-[#57534E] sm:text-2xl">
+          <h3 className="font-display text-xl font-normal leading-[1.1] tracking-[-0.02em] text-muted-foreground sm:text-2xl">
             Shareable review artifact
           </h3>
-          <p className="mt-3 max-w-2xl text-pretty text-sm leading-snug text-[#44403C] sm:mt-4 sm:text-base sm:leading-snug">
+          <p className="mt-3 max-w-2xl text-pretty text-sm leading-snug text-muted-foreground sm:mt-4 sm:text-base sm:leading-snug">
             Send one replay link with context, proof, and the exact moments that
             need human attention.
           </p>
@@ -227,7 +227,7 @@ export function DemoFeatureGrid() {
         return (
           <motion.article
             key={feature.title}
-            className="flex min-h-0 flex-col rounded-2xl border border-[#E0DFDD] bg-[#F5F3F1] p-5 transition-shadow duration-200 sm:p-6 hover:shadow-[0_14px_36px_rgb(0_0_0/0.07)]"
+            className="flex min-h-0 flex-col rounded-2xl border border-border bg-muted p-5 transition-shadow duration-200 sm:p-6 hover:shadow-lg"
             custom={index}
             initial="hidden"
             whileInView="visible"
@@ -238,7 +238,7 @@ export function DemoFeatureGrid() {
             }
           >
             <motion.div
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#E0DFDD] bg-white text-black sm:h-12 sm:w-12"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground sm:h-12 sm:w-12"
               whileHover={
                 reduce
                   ? undefined
@@ -252,10 +252,10 @@ export function DemoFeatureGrid() {
               <Icon className="h-5 w-5" />
             </motion.div>
             <div className="mt-8 flex flex-1 flex-col sm:mt-10">
-              <h3 className="font-display text-lg font-normal leading-tight tracking-[-0.02em] text-[#57534E] sm:text-xl">
+              <h3 className="font-display text-lg font-normal leading-tight tracking-[-0.02em] text-muted-foreground sm:text-xl">
                 {feature.title}
               </h3>
-              <p className="mt-3 text-pretty text-sm leading-snug text-[#44403C] sm:mt-4 sm:text-base sm:leading-snug">
+              <p className="mt-3 text-pretty text-sm leading-snug text-muted-foreground sm:mt-4 sm:text-base sm:leading-snug">
                 {feature.body}
               </p>
             </div>

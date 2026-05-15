@@ -10,14 +10,14 @@ export function BottomCtaSection() {
   const reduce = useReducedMotion();
 
   return (
-    <section className="w-full bg-[#FDFCFC] py-12 sm:py-16 lg:py-20">
+    <section className="w-full bg-background py-12 sm:py-16 lg:py-20">
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="relative -mx-4 w-[calc(100%+2rem)] overflow-visible sm:-mx-6 sm:w-[calc(100%+3rem)] lg:-mx-8 lg:w-[calc(100%+4rem)]">
           <TechnicalCrosshairFrame contentClassName="px-4 sm:px-6 lg:px-8">
             <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-x-14 xl:gap-x-20">
               <div className="min-w-0 space-y-4 sm:space-y-5">
                 <motion.p
-                  className="text-[15px] leading-snug text-[#57534E] sm:text-base"
+                  className="text-[15px] leading-snug text-muted-foreground sm:text-base"
                   initial={reduce ? false : { opacity: 0, x: -12, scale: 0.96 }}
                   whileInView={{ opacity: 1, x: 0, scale: 1 }}
                   viewport={{ once: true, amount: 0.85 }}
@@ -26,7 +26,7 @@ export function BottomCtaSection() {
                   Get started
                 </motion.p>
                 <motion.h2
-                  className="font-display max-w-[min(100%,38rem)] text-[2.75rem] font-normal leading-[1.08] tracking-[-0.02em] text-black sm:text-5xl sm:leading-[1.06] lg:text-[3.25rem] lg:leading-[1.05] xl:max-w-[min(100%,40rem)] xl:text-[3.5rem]"
+                  className="font-display max-w-[min(100%,38rem)] text-[2.75rem] font-normal leading-[1.08] tracking-[-0.02em] text-foreground sm:text-5xl sm:leading-[1.06] lg:text-[3.25rem] lg:leading-[1.05] xl:max-w-[min(100%,40rem)] xl:text-[3.5rem]"
                   initial={
                     reduce
                       ? false
@@ -83,7 +83,7 @@ export function BottomCtaSection() {
                   <Button
                     asChild
                     variant="outline"
-                    className="h-14 shrink-0 rounded-full border-[#E0DFDD] bg-white px-7 text-base font-medium text-black shadow-[0_2px_10px_rgb(0_0_0/0.05)] hover:bg-[#F5F3F1]"
+                    className="h-14 shrink-0 rounded-full px-7 text-base font-medium shadow-sm"
                   >
                     <Link href="/auth/login">Talk to sales</Link>
                   </Button>
@@ -101,10 +101,7 @@ export function BottomCtaSection() {
                   whileHover={reduce ? undefined : { rotate: -0.6, y: -2 }}
                   whileTap={reduce ? undefined : { scale: 0.98 }}
                 >
-                  <Button
-                    asChild
-                    className="h-14 shrink-0 rounded-full bg-black px-7 text-base font-medium text-white shadow-none hover:bg-black/85"
-                  >
+                  <Button asChild className="h-14 shrink-0 rounded-full px-7 text-base font-medium">
                     <Link href="/auth/sign-up">Create a replay</Link>
                   </Button>
                 </motion.div>

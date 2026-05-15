@@ -84,7 +84,7 @@ export function LandingDemoSection() {
   return (
     <section
       id="demo"
-      className="w-full bg-[#FDFCFC] py-20 sm:py-24 lg:py-28"
+      className="w-full bg-background py-20 sm:py-24 lg:py-28"
     >
       <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
         <motion.div
@@ -99,14 +99,14 @@ export function LandingDemoSection() {
             variants={colLeftVariants}
           >
             <motion.p
-              className="text-[15px] leading-snug text-[#57534E] sm:text-base"
+              className="text-[15px] leading-snug text-muted-foreground sm:text-base"
               variants={eyebrowVariants}
               style={{ transformOrigin: "0% 50%" }}
             >
               Video replay
             </motion.p>
             <motion.h2
-              className="font-display mt-3 max-w-[min(100%,30rem)] text-[2.75rem] font-normal leading-[1.08] tracking-[-0.02em] text-black sm:mt-4 sm:text-5xl sm:leading-[1.06] lg:text-[3.25rem] lg:leading-[1.05] xl:max-w-[min(100%,34rem)] xl:text-[3.5rem]"
+              className="font-display mt-3 max-w-[min(100%,30rem)] text-[2.75rem] font-normal leading-[1.08] tracking-[-0.02em] text-foreground sm:mt-4 sm:text-5xl sm:leading-[1.06] lg:text-[3.25rem] lg:leading-[1.05] xl:max-w-[min(100%,34rem)] xl:text-[3.5rem]"
               variants={wordRowVariants}
             >
               {demoWords.map((word, i) => (
@@ -126,16 +126,13 @@ export function LandingDemoSection() {
               whileHover={reduce ? undefined : { scale: 1.02 }}
               whileTap={reduce ? undefined : { scale: 0.98 }}
             >
-              <Button
-                asChild
-                className="h-14 rounded-full bg-black px-7 text-base text-white shadow-none hover:bg-black/85"
-              >
+              <Button asChild className="h-14 rounded-full px-7 text-base">
                 <Link href="/auth/sign-up">Learn more</Link>
               </Button>
             </motion.div>
           </motion.div>
           <motion.div className="min-w-0" variants={rightColVariants}>
-            <p className="text-pretty text-lg leading-snug text-[#44403C] sm:text-xl sm:leading-snug lg:max-w-[26rem]">
+            <p className="text-pretty text-lg leading-snug text-foreground/85 sm:text-xl sm:leading-snug lg:max-w-[26rem]">
               Watch the terminal, diffs, tests, chapters, and review markers from
               an autonomous coding-agent run in one shareable artifact. Replace
               raw transcripts with a workspace people can inspect.

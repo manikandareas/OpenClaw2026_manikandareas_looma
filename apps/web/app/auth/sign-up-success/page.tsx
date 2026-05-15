@@ -1,30 +1,28 @@
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
+import { AuthBrand } from "@/features/auth/components/auth-brand";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+  authBodyClassName,
+  authOutlineButtonClassName,
+  authSubtitleClassName,
+  authTitleClassName,
+} from "@/features/auth/components/auth-form-styles";
+import { cn } from "@/lib/utils";
 
 export default function Page() {
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl">Thank you for signing up!</CardTitle>
-              <CardDescription>Check your email to confirm</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                You&apos;ve successfully signed up. Please check your email to confirm your account
-                before signing in.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+    <div className="w-full">
+      <AuthBrand />
+      <h1 className={authTitleClassName}>Thanks for signing up</h1>
+      <p className={authSubtitleClassName}>Check your email to confirm your account.</p>
+      <p className={cn(authBodyClassName, "mb-6")}>
+        We sent a confirmation link. After you confirm, you can sign in with your email and
+        password.
+      </p>
+      <Button asChild variant="outline" className={authOutlineButtonClassName}>
+        <Link href="/auth/login">Back to sign in</Link>
+      </Button>
     </div>
-  )
+  );
 }
