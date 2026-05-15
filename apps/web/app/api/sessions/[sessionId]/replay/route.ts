@@ -1,4 +1,5 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+import { demoReplayData } from "@/features/replay/fixtures/demo-replay";
 
 type RouteContext = {
   params: Promise<{ sessionId: string }>;
@@ -6,6 +7,11 @@ type RouteContext = {
 
 export async function GET(_request: Request, context: RouteContext) {
   const { sessionId } = await context.params;
+
+  if (sessionId === "demo") {
+    return Response.json(demoReplayData);
+  }
+
   const supabase = createSupabaseAdminClient();
 
   const { data: session, error: sessionError } = await supabase

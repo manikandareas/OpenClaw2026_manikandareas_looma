@@ -2657,12 +2657,16 @@ Manual Real Env E2E result:
 
 ## Hour 8–9: Aha Moment + Landing Page
 
-* Pre-loaded demo session on landing page (auto-play).
-* Before/after comparison component (split screen).
-* Landing page hero section.
-* OG meta tags for replay pages.
-* Embed snippet generation + copy button.
-* Share button with copy link.
+**Status: Done.** Implementasi Hour 8–9 saat ini difokuskan pada replay Aha surface: `/session/demo` public fixture dengan auto-play, `Jump to Interesting` yang severity-first dan cyclic, share link, embed snippet, embed mode, dan OG/Twitter metadata untuk replay pages.
+
+**Catatan:** landing page sedang dalam pengembangan, sehingga item landing page di bawah belum dianggap final meskipun milestone Hour 8–9 sudah ditutup dari sisi replay Aha surface.
+
+* ~~Pre-loaded demo session on replay page (auto-play di `/session/demo`).~~
+* Before/after comparison component (split screen) — landing page in progress.
+* Landing page hero section — in progress.
+* ~~OG meta tags for replay pages.~~
+* ~~Embed snippet generation + copy button.~~
+* ~~Share button with copy link.~~
 
 ## Hour 9–10: Polish + Privacy
 

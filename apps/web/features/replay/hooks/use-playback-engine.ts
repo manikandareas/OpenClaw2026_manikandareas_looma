@@ -1,8 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { PlaybackSpeed, PlaybackState, ReplayEvent, ViewportMode } from "../types/replay";
+import type {
+  PlaybackSpeed,
+  PlaybackState,
+  ReplayEvent,
+  ReplayMarker,
+  ViewportMode,
+} from "../types/replay";
 import { eventToMode } from "../utils/event-to-mode";
+import { selectInterestingMarker } from "../utils/interesting-marker";
 import { computeDelay } from "../utils/timing";
 
 const INITIAL_STATE: PlaybackState = {
@@ -14,7 +21,10 @@ const INITIAL_STATE: PlaybackState = {
   progress: 0,
 };
 
-export function usePlaybackEngine(events: ReplayEvent[]) {
+export function usePlaybackEngine(
+  events: ReplayEvent[],
+  { autoPlay = false }: { autoPlay?: boolean } = {}
+) {
   const [state, setState] = useState<PlaybackState>(() => getInitialState(events));
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateRef = useRef(state);
@@ -112,6 +122,11 @@ export function usePlaybackEngine(events: ReplayEvent[]) {
     scheduleNextRef.current();
   }, [clearTimer]);
 
+  useEffect(() => {
+    if (!autoPlay || events.length === 0) return;
+    play();
+  }, [autoPlay, events.length, play]);
+
   const pause = useCallback(() => {
     clearTimer();
     stateRef.current = { ...stateRef.current, isPlaying: false };
@@ -158,13 +173,11 @@ export function usePlaybackEngine(events: ReplayEvent[]) {
   );
 
   const jumpToInteresting = useCallback(
-    (markers: { seq: number; needs_review: boolean }[]) => {
+    (markers: Pick<ReplayMarker, "seq" | "needs_review" | "severity">[]) => {
       const evts = eventsRef.current;
       const { currentIndex } = stateRef.current;
       const currentSeq = evts[currentIndex]?.seq ?? 0;
-
-      const nextMarker = markers.find((m) => m.needs_review && m.seq > currentSeq);
-      const target = nextMarker ?? markers.find((m) => m.needs_review);
+      const target = selectInterestingMarker(markers, currentSeq);
 
       if (target) {
         const targetIndex = evts.findIndex((e) => e.seq >= target.seq);

@@ -4,6 +4,11 @@ import { useQuery } from "@tanstack/react-query";
 import type { ReplayData } from "../types/replay";
 
 async function fetchReplay(sessionId: string): Promise<ReplayData> {
+  if (sessionId === "demo") {
+    const { demoReplayData } = await import("../fixtures/demo-replay");
+    return demoReplayData;
+  }
+
   const res = await fetch(`/api/sessions/${sessionId}/replay`);
   if (!res.ok) throw new Error("Failed to fetch replay data");
   return res.json();

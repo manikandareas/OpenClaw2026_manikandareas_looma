@@ -19,6 +19,7 @@ type ReviewSidebarProps = {
   currentEvent: ReplayEvent | null;
   redactionSummary: Record<string, unknown>;
   onSeekToEvent: (index: number) => void;
+  activeMarkerSeq: number | null;
 };
 
 export function ReviewSidebar({
@@ -32,6 +33,7 @@ export function ReviewSidebar({
   currentEvent,
   redactionSummary,
   onSeekToEvent,
+  activeMarkerSeq,
 }: ReviewSidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -174,7 +176,7 @@ export function ReviewSidebar({
               <MarkerItem
                 key={marker.id}
                 marker={marker}
-                isActive={isMarkerActive(marker, events, currentIndex)}
+                isActive={isMarkerActive(marker, events, currentIndex, activeMarkerSeq)}
                 onClick={() => handleMarkerClick(marker)}
               />
             ))}
@@ -222,7 +224,7 @@ export function ReviewSidebar({
               <MarkerItem
                 key={marker.id}
                 marker={marker}
-                isActive={isMarkerActive(marker, events, currentIndex)}
+                isActive={isMarkerActive(marker, events, currentIndex, activeMarkerSeq)}
                 onClick={() => handleMarkerClick(marker)}
               />
             ))}
@@ -370,8 +372,10 @@ function SeverityDot({ severity }: { severity: ReplayMarker["severity"] }) {
 function isMarkerActive(
   marker: ReplayMarker,
   events: ReplayEvent[],
-  currentIndex: number
+  currentIndex: number,
+  activeMarkerSeq: number | null
 ): boolean {
+  if (activeMarkerSeq === marker.seq) return true;
   const currentEvent = events[currentIndex];
   if (!currentEvent) return false;
   return currentEvent.seq === marker.seq;

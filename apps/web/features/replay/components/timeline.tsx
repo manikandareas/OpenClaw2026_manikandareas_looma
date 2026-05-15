@@ -10,6 +10,7 @@ type TimelineProps = {
   chapters: ReplayChapter[];
   segments: TimelineSegment[];
   currentIndex: number;
+  activeMarkerSeq: number | null;
   progress: number;
   totalDurationMs: number | null;
   onSeek: (index: number) => void;
@@ -21,6 +22,7 @@ export function Timeline({
   chapters,
   segments,
   currentIndex,
+  activeMarkerSeq,
   progress,
   totalDurationMs,
   onSeek,
@@ -124,7 +126,11 @@ export function Timeline({
           return (
             <div
               key={marker.id}
-              className="absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-background"
+              className={`absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-background transition-all ${
+                activeMarkerSeq === marker.seq
+                  ? "h-4 w-4 ring-2 ring-foreground/70"
+                  : "h-2.5 w-2.5"
+              }`}
               style={{
                 left: `${percent}%`,
                 backgroundColor: marker.needs_review ? "#ef4444" : "#a1a1aa",
