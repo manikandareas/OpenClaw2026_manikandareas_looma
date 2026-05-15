@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Newsreader } from "next/font/google";
 import { QueryProvider } from "@/providers/query-provider";
 import { AppToaster } from "@/providers/app-toaster";
 import "./globals.css";
@@ -14,6 +14,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"]
 });
 
+const newsreader = Newsreader({
+  variable: "--font-newsreader",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap"
+});
+
 export const metadata: Metadata = {
   title: "Looma",
   description: "Replay-native review layer for autonomous coding agents."
@@ -22,7 +29,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} font-sans antialiased`}
+      >
         <QueryProvider>
           {children}
         </QueryProvider>

@@ -1,0 +1,126 @@
+import {
+  CheckCircle2,
+  Code2,
+  ScanSearch,
+  SquareTerminal,
+} from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+const demoSteps = [
+  {
+    eyebrow: "Terminal",
+    title: "Agent reproduces the failure",
+    body: "$ bun test auth\nexpected 401 received 500",
+    icon: SquareTerminal,
+  },
+  {
+    eyebrow: "Diff",
+    title: "Editor changes are reconstructed",
+    body: "+ return unauthorized()\n- throw new Error()",
+    icon: Code2,
+  },
+  {
+    eyebrow: "Tests",
+    title: "Verification becomes a chapter",
+    body: "42 passed, 0 failed\nlint clean",
+    icon: CheckCircle2,
+  },
+  {
+    eyebrow: "Review",
+    title: "Risk marker is pinned",
+    body: "Needs Review: auth fallback touched",
+    icon: ScanSearch,
+  },
+] as const;
+
+type LandingDemoSessionPreviewProps = {
+  className?: string;
+  /** Fills parent height; use inside a 16:9 frame with fluid step animation */
+  variant?: "default" | "hero";
+};
+
+export function LandingDemoSessionPreview({
+  className,
+  variant = "default",
+}: LandingDemoSessionPreviewProps) {
+  const isHero = variant === "hero";
+
+  return (
+    <div
+      className={cn(
+        "rounded-md bg-black p-4 text-white",
+        isHero && "flex h-full min-h-0 flex-col p-3 sm:p-4",
+        className,
+      )}
+    >
+      <div
+        className={cn(
+          "mb-6 flex items-center justify-between text-xs text-white/60",
+          isHero && "mb-3 shrink-0 sm:mb-4",
+        )}
+      >
+        <span>session-8f2c</span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-2 w-2 rounded-full bg-[#F41A2F]" />
+          recording
+        </span>
+      </div>
+      <div
+        className={cn(
+          "landing-demo-stage overflow-hidden",
+          isHero
+            ? "landing-demo-stage--hero flex-1 min-h-0"
+            : "h-[330px]",
+        )}
+      >
+        <div
+          className={cn("landing-demo-track", isHero && "landing-demo-track--hero")}
+        >
+          {demoSteps.map((step) => {
+            const Icon = step.icon;
+
+            return (
+              <section
+                key={step.title}
+                className={cn(
+                  "landing-demo-step",
+                  isHero && "landing-demo-step--hero flex min-h-0 flex-col",
+                )}
+              >
+                <div
+                  className={cn(
+                    "mb-5 flex h-10 w-10 items-center justify-center rounded-md bg-white/10",
+                    isHero && "mb-3 h-8 w-8 sm:mb-4 sm:h-10 sm:w-10",
+                  )}
+                >
+                  <Icon className={cn("h-5 w-5", isHero && "h-4 w-4 sm:h-5 sm:w-5")} />
+                </div>
+                <p className="text-xs font-medium uppercase tracking-normal text-white/50">
+                  {step.eyebrow}
+                </p>
+                <h3
+                  className={cn(
+                    "mt-3 text-2xl font-semibold tracking-normal text-white",
+                    isHero &&
+                      "mt-2 text-lg leading-snug sm:mt-3 sm:text-xl lg:text-2xl",
+                  )}
+                >
+                  {step.title}
+                </h3>
+                <pre
+                  className={cn(
+                    "mt-5 whitespace-pre-wrap rounded-md bg-white/8 p-4 font-mono text-xs leading-6 text-[#E0DFDD]",
+                    isHero && "mt-3 min-h-0 flex-1 overflow-auto p-3 text-[11px] leading-5 sm:mt-4 sm:p-4 sm:text-xs sm:leading-6",
+                  )}
+                >
+                  {step.body}
+                </pre>
+              </section>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
