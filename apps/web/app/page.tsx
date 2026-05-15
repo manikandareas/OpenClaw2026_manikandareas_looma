@@ -19,10 +19,10 @@ export default function HomePage() {
         <div className="text-sm font-semibold">Looma</div>
         <div className="flex items-center gap-2">
           <Button asChild variant="ghost" size="sm">
-            <Link href="/login">Login</Link>
+            <Link href="/auth/login">Login</Link>
           </Button>
           <Button asChild size="sm">
-            <Link href="/signup">Sign up</Link>
+            <Link href="/auth/sign-up">Sign up</Link>
           </Button>
         </div>
       </nav>

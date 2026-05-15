@@ -1,0 +1,20 @@
+{
+  "name": "@looma/hook-bridge",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "looma-hook": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "bun build src/index.ts --outdir dist --target node",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@looma/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "typescript": "^5.9.3"
+  }
+}

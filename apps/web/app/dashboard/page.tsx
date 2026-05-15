@@ -1,8 +1,8 @@
 import { Activity, Import, Radio } from "lucide-react";
 import Link from "next/link";
-import { AppNav } from "@/components/app-nav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AppNav } from "@/features/app-shell/components/app-nav";
 
 const stats = [
   { label: "Sessions", value: "0", icon: Activity },

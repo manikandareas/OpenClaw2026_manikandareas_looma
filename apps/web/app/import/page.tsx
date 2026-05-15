@@ -1,5 +1,5 @@
-import { AppNav } from "@/components/app-nav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AppNav } from "@/features/app-shell/components/app-nav";
 
 export default function ImportPage() {
   return (

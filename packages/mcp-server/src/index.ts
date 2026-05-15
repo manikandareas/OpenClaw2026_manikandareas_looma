@@ -8,6 +8,7 @@ import {
   mcpRecordStopInputSchema
 } from "@looma/shared";
 import { LoomaApiClient } from "./client";
+import { writeActiveSession, clearActiveSession } from "./session-file";
 
 const server = new McpServer({
   name: "looma",
@@ -43,7 +44,13 @@ server.registerTool(
       ...input,
       sourceType: "mcp"
     });
-    return jsonContent(await client.createSession(parsed));
+    const result = await client.createSession(parsed);
+    try {
+      await writeActiveSession((result as { sessionId: string }).sessionId);
+    } catch (err) {
+      process.stderr.write(`[looma-mcp] failed to write active session: ${err}\n`);
+    }
+    return jsonContent(result);
   }
 );
 
@@ -85,7 +92,13 @@ server.registerTool(
   async (input) => {
     const client = new LoomaApiClient();
     const parsed = mcpRecordStopInputSchema.parse(input);
-    return jsonContent(await client.stopSession(parsed.sessionId));
+    const result = await client.stopSession(parsed.sessionId);
+    try {
+      await clearActiveSession();
+    } catch (err) {
+      process.stderr.write(`[looma-mcp] failed to clear active session: ${err}\n`);
+    }
+    return jsonContent(result);
   }
 );
 

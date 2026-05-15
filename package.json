@@ -11,7 +11,8 @@
     "build": "bun --filter '*' build",
     "lint": "bun --filter '*' lint",
     "typecheck": "bun --filter '*' typecheck",
-    "mcp": "bun --filter @looma/mcp-server start"
+    "mcp": "bun --filter @looma/mcp-server start",
+    "hook-bridge:build": "bun --filter @looma/hook-bridge build"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

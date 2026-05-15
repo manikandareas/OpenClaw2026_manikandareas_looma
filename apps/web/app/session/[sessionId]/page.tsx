@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { AppNav } from "@/components/app-nav";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AppNav } from "@/features/app-shell/components/app-nav";
 
 type ReplayPageProps = {
   params: Promise<{ sessionId: string }>;

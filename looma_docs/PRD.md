@@ -2576,17 +2576,17 @@ Future:
 
 ## 28. Implementation Plan — 12 Hours
 
-## Hour 0–1: Setup + Auth + MCP Server
+## Hour 0–1: Setup + Auth + MCP Server ✅ DONE
 
-* Create GitHub repository (monorepo Bun: `apps/*` + `packages/*`).
-* Setup Next.js + Tailwind + shadcn/ui + framer-motion di `apps/web/` mengikuti layout Bulletproof (lihat §22 Frontend Codebase Layout) — tanpa folder `src/`.
-* Configure dark mode as default (Tailwind dark class).
-* Setup Supabase schema + Supabase Auth (email + password).
-* Create login/signup pages di `apps/web/app/login` dan `apps/web/app/signup`.
-* Setup Next.js middleware for route protection (`apps/web/middleware.ts`).
-* Create MCP server skeleton (record_start, record_event, record_stop) di `packages/mcp-server`.
-* Create hook bridge script (PostToolCall → Looma API).
-* Define shared event schema + Zod types di `packages/shared` (`@looma/shared`).
+* ~~Create GitHub repository (monorepo Bun: `apps/*` + `packages/*`).~~
+* ~~Setup Next.js + Tailwind + shadcn/ui + framer-motion di `apps/web/` mengikuti layout Bulletproof (lihat §22 Frontend Codebase Layout) — tanpa folder `src/`.~~
+* ~~Configure dark mode as default (Tailwind dark class).~~
+* ~~Setup Supabase schema + Supabase Auth (email + password).~~
+* ~~Create login/signup pages di `apps/web/app/auth/login` dan `apps/web/app/auth/sign-up`.~~
+* ~~Setup Next.js middleware for route protection (`apps/web/middleware.ts`).~~
+* ~~Create MCP server skeleton (record_start, record_event, record_stop) di `packages/mcp-server`.~~
+* ~~Create hook bridge script (PostToolCall → Looma API) di `packages/hook-bridge`.~~
+* ~~Define shared event schema + Zod types di `packages/shared` (`@looma/shared`).~~
 
 ## Hour 1–3: Backend + App Pages Shell
 
