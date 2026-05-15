@@ -1,4 +1,5 @@
 import { getReplayUrl } from "@/lib/api/replay-url";
+import { runLensAgent } from "@/features/lens-agent/api/run-lens-agent";
 import { getApiActor, unauthorized } from "@/lib/api/auth";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 
@@ -31,9 +32,26 @@ export async function POST(request: Request, context: RouteContext) {
     return Response.json({ error: error.message }, { status: 404 });
   }
 
-  return Response.json({
-    sessionId: data.id,
-    status: data.status,
-    replayUrl: getReplayUrl(data.id)
-  });
+  try {
+    const result = await runLensAgent({
+      sessionId: data.id,
+      userId: actor.userId,
+      force: true,
+    });
+
+    return Response.json({
+      ...result,
+      replayUrl: getReplayUrl(data.id)
+    });
+  } catch (processError) {
+    return Response.json(
+      {
+        sessionId: data.id,
+        status: "failed",
+        replayUrl: getReplayUrl(data.id),
+        error: processError instanceof Error ? processError.message : "Failed to process session",
+      },
+      { status: 500 }
+    );
+  }
 }

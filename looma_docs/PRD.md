@@ -2628,24 +2628,32 @@ Future:
 
 Tools dan orkestrator lens-agent tinggal di `apps/web/features/lens-agent/` (atau `apps/web/lib/lens-agent/` jika dianggap shared infrastructure). Route handler entry point: `apps/web/app/api/sessions/[sessionId]/process/route.ts`.
 
-* Install Vercel AI SDK (`ai` + `@ai-sdk/openai`).
-* Create AI provider config (GPT-4o-mini).
-* Create event compressor (raw events → structured summary).
-* Create rule-based tools:
-  * analyze_event_patterns (loop/retry/phase detection).
-  * detect_review_markers (Needs Review triggers).
-  * calculate_behavior_summary (metrics counting).
-  * evaluate_completeness (self-check).
-* Create LLM-powered tools:
-  * generate_chapters (phase detection + LLM titles).
-  * generate_session_notes (LLM summarization).
-* Create publish_replay_metadata tool (DB write).
-* Create agent orchestrator (generateText + tools + maxSteps: 8).
-* Create system prompt with decision framework.
-* Capture reasoning trace from agent steps.
-* Integrate with /api/sessions/[sessionId]/process route.
-* Timeline segment coloring based on pattern detection results.
-* Test with sample session data.
+**Status: Done.** Implementasi saat ini menggunakan Vercel AI SDK `ToolLoopAgent` dengan `toolChoice: "required"`, stop condition `hasToolCall("publish_replay_metadata")` + `stepCountIs(LOOMA_LENS_MAX_STEPS)`, dan state gating supaya non-empty session hanya menjadi `replay_ready` setelah tool `publish_replay_metadata` benar-benar terpanggil.
+
+* ~~Install Vercel AI SDK (`ai` + `@ai-sdk/openai`).~~
+* ~~Create AI provider config (default `gpt-4o-mini`, override via `LOOMA_OPENAI_MODEL`).~~
+* ~~Create event compressor (raw events → structured summary).~~
+* ~~Create rule-based tools:~~
+  * ~~analyze_event_patterns (loop/retry/phase detection).~~
+  * ~~detect_review_markers (Needs Review triggers).~~
+  * ~~calculate_behavior_summary (metrics counting).~~
+  * ~~evaluate_completeness (self-check + publish readiness).~~
+* ~~Create LLM-powered tools:~~
+  * ~~generate_chapters (phase detection + LLM titles).~~
+  * ~~generate_session_notes (LLM summarization).~~
+* ~~Create publish_replay_metadata tool (DB write).~~
+* ~~Create agent orchestrator (`ToolLoopAgent` + tools + default maxSteps: 8).~~
+* ~~Create system prompt with decision framework.~~
+* ~~Capture visible decision trace from actual tool calls (tool name, input/output summary, duration, status, timestamp, visible reason).~~
+* ~~Integrate with `/api/sessions/[sessionId]/process`, `/api/import`, and `/api/sessions/[sessionId]/stop`.~~
+* ~~Preserve deterministic 0-event publish fast path.~~
+* ~~Remove fallback success path for non-empty sessions; max-step/OpenAI/publish failures mark the session `failed`.~~
+* ~~Test with sample session data and Real Env E2E.~~
+
+Manual Real Env E2E result:
+
+* `gpt-5-nano` failed to publish within 12 steps and correctly left the session `failed`.
+* `gpt-4o-mini` succeeded with 24 imported events: `replay_ready`, 12 markers, 5 chapters, non-empty notes, and decision trace containing `publish_replay_metadata` with no fallback.
 
 ## Hour 8–9: Aha Moment + Landing Page
 

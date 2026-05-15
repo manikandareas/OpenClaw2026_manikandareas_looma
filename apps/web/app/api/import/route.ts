@@ -1,5 +1,6 @@
 import { importTranscriptInputSchema, normalizedEventInputSchema } from "@looma/shared";
 import { redactJson } from "@looma/shared";
+import { runLensAgent } from "@/features/lens-agent/api/run-lens-agent";
 import { getApiActor, unauthorized } from "@/lib/api/auth";
 import { getReplayUrl } from "@/lib/api/replay-url";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
       harness: input.harness,
       workspace_name: input.workspaceName,
       source_type: "json_import",
-      status: "replay_ready",
+      status: "processing",
       started_at: new Date().toISOString(),
       ended_at: new Date().toISOString()
     })
@@ -97,10 +98,28 @@ export async function POST(request: Request) {
     normalizedEventCount = 1;
   }
 
-  return Response.json({
-    sessionId: session.id,
-    status: session.status,
-    replayUrl: getReplayUrl(session.id),
-    normalizedEventCount,
-  });
+  try {
+    const result = await runLensAgent({
+      sessionId: session.id,
+      userId: actor.userId,
+      force: true,
+    });
+
+    return Response.json({
+      ...result,
+      replayUrl: getReplayUrl(session.id),
+      normalizedEventCount,
+    });
+  } catch (error) {
+    return Response.json(
+      {
+        sessionId: session.id,
+        status: "failed",
+        replayUrl: getReplayUrl(session.id),
+        normalizedEventCount,
+        error: error instanceof Error ? error.message : "Failed to process imported transcript",
+      },
+      { status: 500 }
+    );
+  }
 }
