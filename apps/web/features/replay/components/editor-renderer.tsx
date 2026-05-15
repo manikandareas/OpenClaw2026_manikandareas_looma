@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import type { PlaybackSpeed, ReplayEvent } from "../types/replay";
-import { getDisplayNumber, getDisplayString, getSafeDisplayText } from "../utils/display-payload";
+import { eventToFrame } from "../utils/replay-frame";
 
 type EditorRendererProps = {
   event: ReplayEvent | null;
@@ -13,12 +13,7 @@ export function EditorRenderer({ event, speed }: EditorRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<import("@codemirror/view").EditorView | null>(null);
   const lastEventSeqRef = useRef<number>(-1);
-  const animationRef = useRef<ReturnType<typeof setTimeout>[]>([]);
-
-  const cancelAnimations = useCallback(() => {
-    animationRef.current.forEach(clearTimeout);
-    animationRef.current = [];
-  }, []);
+  const latestEventRef = useRef<ReplayEvent | null>(event);
 
   useEffect(() => {
     let mounted = true;
@@ -51,89 +46,51 @@ export function EditorRenderer({ event, speed }: EditorRendererProps) {
 
       const view = new EditorView({ state, parent: containerRef.current });
       viewRef.current = view;
+      renderEditorFrame(view, latestEventRef.current);
+      lastEventSeqRef.current = latestEventRef.current?.seq ?? -1;
     }
 
     init();
 
     return () => {
       mounted = false;
-      cancelAnimations();
       viewRef.current?.destroy();
       viewRef.current = null;
     };
-  }, [cancelAnimations]);
+  }, []);
 
   useEffect(() => {
+    latestEventRef.current = event;
     if (!event || !viewRef.current) return;
     if (event.seq === lastEventSeqRef.current) return;
     lastEventSeqRef.current = event.seq;
 
-    cancelAnimations();
-    const view = viewRef.current;
-    const content =
-      getDisplayString(event, "content", getSafeDisplayText(event)) ||
-      `// ${event.related_file ?? "file"}`;
-    const targetLine = Math.max(1, Math.floor(getDisplayNumber(event, "line") ?? 1));
-
-    view.dispatch({
-      changes: { from: 0, to: view.state.doc.length, insert: "" },
-      selection: { anchor: 0 },
-    });
-
-    const lines = content.split("\n");
-    const linesPerStep = Math.max(1, Math.ceil(lines.length / 48));
-    const stepDelay = Math.max(24, 70 / speed);
-    let revealedLines = 0;
-    let didFocusTargetLine = false;
-
-    async function focusTargetLine() {
-      if (!viewRef.current) return;
-
-      const { EditorView } = await import("@codemirror/view");
-      const activeView = viewRef.current;
-      const lineInfo = activeView.state.doc.line(
-        Math.min(targetLine, activeView.state.doc.lines)
-      );
-
-      activeView.dispatch({
-        selection: { anchor: lineInfo.from },
-        effects: EditorView.scrollIntoView(lineInfo.from, { y: "center" }),
-      });
-      activeView.focus();
-    }
-
-    function revealNextBatch() {
-      if (!viewRef.current) return;
-
-      revealedLines = Math.min(lines.length, revealedLines + linesPerStep);
-      const visibleContent = lines.slice(0, revealedLines).join("\n");
-
-      viewRef.current.dispatch({
-        changes: {
-          from: 0,
-          to: viewRef.current.state.doc.length,
-          insert: visibleContent,
-        },
-      });
-
-      if (!didFocusTargetLine && revealedLines >= Math.min(targetLine, lines.length)) {
-        didFocusTargetLine = true;
-        void focusTargetLine();
-      }
-
-      if (revealedLines < lines.length) {
-        const timer = setTimeout(revealNextBatch, stepDelay);
-        animationRef.current.push(timer);
-      } else if (!didFocusTargetLine) {
-        didFocusTargetLine = true;
-        void focusTargetLine();
-      }
-    }
-
-    revealNextBatch();
-  }, [event, speed, cancelAnimations]);
+    renderEditorFrame(viewRef.current, event);
+  }, [event, speed]);
 
   return (
     <div ref={containerRef} className="h-full w-full overflow-hidden" />
   );
+}
+
+async function renderEditorFrame(
+  view: import("@codemirror/view").EditorView,
+  event: ReplayEvent | null
+) {
+  const frame = eventToFrame(event);
+  if (frame.mode !== "editor") return;
+  const targetLine = frame.line;
+
+  view.dispatch({
+    changes: { from: 0, to: view.state.doc.length, insert: frame.content },
+    selection: { anchor: 0 },
+  });
+
+  const { EditorView } = await import("@codemirror/view");
+  const lineInfo = view.state.doc.line(Math.min(targetLine, view.state.doc.lines));
+
+  view.dispatch({
+    selection: { anchor: lineInfo.from },
+    effects: EditorView.scrollIntoView(lineInfo.from, { y: "center" }),
+  });
 }
