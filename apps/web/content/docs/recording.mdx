@@ -1,0 +1,66 @@
+---
+title: Recording Sessions
+description: Start a recording, capture live agent events, stop the session, and open the replay URL.
+---
+
+Recording starts with an explicit session and ends with a replay URL.
+
+## Start with `record_start`
+
+Call `record_start` from an MCP-capable harness or a slash-command wrapper.
+
+```json
+{
+  "name": "Add JWT auth with refresh token",
+  "harness": "claude-code",
+  "agentName": "Claude",
+  "workspaceName": "api-service"
+}
+```
+
+The response includes the session ID and the public replay route:
+
+```json
+{
+  "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
+  "status": "recording",
+  "replayUrl": "http://localhost:3000/session/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+}
+```
+
+## Capture live events
+
+While the session is active, Looma accepts normalized events from hooks or explicit `record_event` calls. Common event types include:
+
+- `terminal_command`
+- `terminal_output`
+- `file_diff`
+- `file_read`
+- `test_result`
+- `session_checkpoint`
+
+Claude Code hooks can capture `Bash`, `Read`, `Write`, `Edit`, `MultiEdit`, `Glob`, `Grep`, `LS`, and failure events. The replay page can update while events arrive.
+
+## Stop with `record_stop`
+
+Call `record_stop` when the agent is done.
+
+```json
+{
+  "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+}
+```
+
+After stop, Looma marks the session as `processing` and prepares replay metadata.
+
+```json
+{
+  "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
+  "status": "processing",
+  "replayUrl": "http://localhost:3000/session/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+}
+```
+
+## Open the replay
+
+Open `/session/{sessionId}` to review the session timeline, terminal output, diffs, test results, chapters, notes, and Needs Review markers.

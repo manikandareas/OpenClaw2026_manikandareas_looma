@@ -1,0 +1,51 @@
+---
+title: Sessions API
+description: Understand the Looma session lifecycle and the public replay route.
+---
+
+A session is the top-level recording unit in Looma.
+
+## Lifecycle
+
+Sessions usually move through these states:
+
+1. `recording` while events are being captured.
+2. `processing` after `record_stop`.
+3. `replay_ready` when replay metadata is available.
+4. `failed` if recording or processing cannot complete.
+
+## Start a session
+
+`record_start` creates a session and returns a `sessionId`.
+
+```json
+{
+  "name": "Add JWT auth with refresh token",
+  "harness": "claude-code",
+  "workspaceName": "api-service"
+}
+```
+
+## Stop a session
+
+`record_stop` closes the active recording and triggers replay processing.
+
+```json
+{
+  "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+}
+```
+
+## Public replay route
+
+Every completed session has a canonical replay route:
+
+```text
+/session/{sessionId}
+```
+
+Use this URL for handoff, review, and sharing. It is separate from internal API routes such as replay data fetching.
+
+## Replay data
+
+Replay data includes the session record, normalized events, Needs Review markers, chapters, behavior summary, notes, and redaction summary.

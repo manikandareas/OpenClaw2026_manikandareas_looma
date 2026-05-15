@@ -1,0 +1,56 @@
+---
+title: Getting Started
+description: Install dependencies, configure environment variables, run Looma locally, and create an API key.
+---
+
+Use this path when you want to record a real local agent session.
+
+## Install dependencies
+
+```bash
+bun install
+```
+
+## Configure the web app
+
+Create local environment values for the web app:
+
+```bash
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_SUPABASE_URL=<your-supabase-url>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<your-publishable-key>
+SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
+OPENAI_API_KEY=<your-openai-api-key>
+```
+
+`SUPABASE_SERVICE_ROLE_KEY` and `OPENAI_API_KEY` are server-only values. Do not expose them in browser code or commit them to the repository.
+
+## Run Looma
+
+```bash
+bun dev
+```
+
+Open `http://localhost:3000/dashboard`.
+
+## Sign in
+
+Create or use a Supabase-backed account. Dashboard, sessions, and import routes require a signed-in user.
+
+## Create an API key
+
+From the dashboard, open the recording setup flow and create a Looma API key. The key is shown once. Use it as `LOOMA_API_KEY` when configuring agent tooling.
+
+```bash
+export LOOMA_API_URL=http://localhost:3000
+export LOOMA_API_KEY=<token>
+```
+
+## Verify the local app
+
+Before connecting an agent, make sure these routes load:
+
+- `/dashboard`
+- `/sessions`
+- `/import`
+- `/session/demo`

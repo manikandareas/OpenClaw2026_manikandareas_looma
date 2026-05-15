@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ChevronRight, FileText, Play, Radio } from "lucide-react";
+import { BookOpen, ChevronRight, FileText, Play, Radio } from "lucide-react";
 import { ClaudeCodeSetup } from "./claude-code-setup";
 
 type QuickActionsProps = {
@@ -21,6 +21,12 @@ const LINK_ACTIONS = [
     description: "See a sample replay session in action",
     href: "/session/demo",
     icon: Play,
+  },
+  {
+    title: "Read Docs",
+    description: "Set up recording and replay review",
+    href: "/docs",
+    icon: BookOpen,
   },
 ];
 

@@ -1,0 +1,44 @@
+---
+title: Replay Review
+description: Review the synchronized session timeline, terminal output, diffs, tests, chapters, notes, and Needs Review markers.
+---
+
+The replay page turns raw agent activity into a compact review artifact.
+
+## Timeline
+
+The timeline shows normalized events in timestamp order. Scrub to move through the session, play it like a video, or jump directly to important moments.
+
+Colored segments help separate execution, editing, testing, review, and error-heavy phases.
+
+## Terminal output
+
+Terminal frames show commands and output previews for events such as `terminal_command`, `terminal_output`, and command failures.
+
+Use terminal frames to answer:
+
+- What command did the agent run?
+- Did it fail?
+- Did the agent retry the same command?
+
+## Diffs
+
+Diff frames show file changes for events such as `file_diff` and edit failures. Review these frames when a marker points to a large change, risky file, or failed edit.
+
+## Test results
+
+Test-related events appear in the same timeline as commands and edits. A reviewer can see when tests failed, whether the agent changed code afterward, and whether a later run passed.
+
+## Chapters
+
+Chapters group the session into meaningful phases such as setup, implementation, debugging, and verification. Use chapters to scan a long session before opening detailed events.
+
+## Notes
+
+Session notes summarize what happened and what remains risky. Notes are not a replacement for review; they are a fast entry point into the replay.
+
+## Needs Review markers
+
+Needs Review markers point to moments that deserve human attention. A marker can be created for a large diff, a failing test, repeated retries, tool failures, risky config changes, or low-progress loops.
+
+Needs Review does not automatically mean the agent was wrong. It means the event is important enough to inspect.

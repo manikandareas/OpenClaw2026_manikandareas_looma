@@ -1,0 +1,46 @@
+---
+title: Troubleshooting
+description: Fix common setup, MCP, live update, processing, and redaction issues.
+---
+
+Use this page when a recording does not produce the replay you expected.
+
+## Missing API key
+
+If `looma doctor` cannot authenticate, create a new key from the dashboard and export it:
+
+```bash
+export LOOMA_API_URL=http://localhost:3000
+export LOOMA_API_KEY=<token>
+looma doctor
+```
+
+Make sure the key belongs to the same Looma app URL you are recording to.
+
+## No MCP tools
+
+Run `/mcp` in Claude Code and confirm the `looma` server is listed. If `record_start`, `record_event`, and `record_stop` are missing, rerun setup:
+
+```bash
+looma setup claude-code --app-url http://localhost:3000 --api-key <token>
+```
+
+Restart Claude Code after changing MCP configuration.
+
+## No live updates
+
+Check that the session is still `recording`, the agent hooks are installed in the active project, and the web app is connected to the expected Supabase project.
+
+If the replay page is open, refresh `/session/{sessionId}` and confirm the event count changes after a new command or edit.
+
+## Replay stays processing
+
+Processing starts after `record_stop`. If the replay never becomes ready, check the server logs for the session process route and confirm `OPENAI_API_KEY` is available when AI session notes or markers are generated.
+
+You can still inspect raw captured events from the session API while processing is being fixed.
+
+## Secrets or redaction concerns
+
+Do not send secrets through `record_event`. If a tool output may contain secrets, redact it before it reaches Looma or mark it as sensitive.
+
+Replay renderers should use redacted payloads by default. If you see private values in a replay, rotate the exposed secret and remove the unsafe event payload from storage.

@@ -9,6 +9,7 @@ const navItems = [
   { href: "#demo", label: "Demo" },
   { href: "#features", label: "Features" },
   { href: "#workflow", label: "How it works" },
+  { href: "/docs", label: "Docs" },
 ] as const;
 
 export function LandingHeader() {

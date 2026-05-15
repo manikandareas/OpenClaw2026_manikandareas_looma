@@ -1,0 +1,27 @@
+---
+title: Looma Docs
+description: Record autonomous coding-agent sessions and turn them into reviewable replay links.
+---
+
+Looma helps developers, tech leads, reviewers, and agent-tool builders understand what an autonomous coding agent actually did. Start a recording, let the agent work, stop the session, then share one replay page with terminal output, diffs, tests, chapters, session notes, and Needs Review markers.
+
+## Fastest path
+
+1. Run Looma locally.
+2. Sign in and create a Looma API key from the dashboard.
+3. Connect Claude Code with `looma setup claude-code`.
+4. Start a session with `record_start` or `/record start`.
+5. Stop with `record_stop`.
+6. Open the returned `/session/{sessionId}` replay URL.
+
+## What Looma records
+
+Looma normalizes agent activity into review events. A replay can show terminal commands, terminal output, file diffs, file reads, test results, and session lifecycle events in one timeline.
+
+## What reviewers get
+
+The replay page is built for inspection. Reviewers can scrub the timeline, jump to important markers, inspect terminal and diff context, read generated chapters, and use the public session link during handoff.
+
+## What stays private
+
+Looma docs are public product documentation. Internal planning material remains in `looma_docs/`. Event payloads should avoid secrets, and Looma prefers redacted replay payloads when displaying captured data.

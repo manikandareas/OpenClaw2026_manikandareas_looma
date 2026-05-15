@@ -1,0 +1,64 @@
+---
+title: Events API
+description: Capture normalized agent events without leaking sensitive payloads.
+---
+
+Events are the reviewable facts inside a Looma session. They should explain what happened without dumping raw private context.
+
+## Event concepts
+
+Each event has a type, category, source, actor, timestamp, display text, and payload.
+
+Common event types:
+
+- `terminal_command`
+- `terminal_output`
+- `terminal_command_failed`
+- `file_read`
+- `file_diff`
+- `file_edit_failed`
+- `test_result`
+- `session_checkpoint`
+- `session_stop`
+
+## Example event
+
+```json
+{
+  "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
+  "type": "terminal_command",
+  "category": "execution",
+  "source": "hook",
+  "actor": "agent",
+  "workspacePath": "/workspace/api-service",
+  "relatedCommand": "bun test auth",
+  "payload": {
+    "command": "bun test auth",
+    "exitCode": 1
+  },
+  "displayText": "Agent ran auth tests and saw one failure.",
+  "sensitivity": "none"
+}
+```
+
+## Payload guidance
+
+Prefer small, structured payloads. Do not send secrets, private environment values, complete credentials, or unnecessary full file contents.
+
+Good payloads include:
+
+- command name and exit code
+- file path and diff summary
+- test suite name and status
+- short redacted output snippets
+
+Avoid payloads that include:
+
+- API keys or tokens
+- `.env` values
+- full private logs
+- unrelated user data
+
+## Redacted display
+
+When a payload might contain sensitive content, send or store a redacted version for replay display. Looma renderers should prefer redacted replay data.

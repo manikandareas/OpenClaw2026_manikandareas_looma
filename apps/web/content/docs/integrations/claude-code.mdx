@@ -1,0 +1,72 @@
+---
+title: Claude Code
+description: Connect Claude Code to Looma with the Looma agent, MCP tools, and optional slash command.
+---
+
+Use the Claude Code integration when you want real agent activity captured automatically through MCP and hooks.
+
+## Start Looma
+
+```bash
+bun install
+bun dev
+```
+
+Open `http://localhost:3000/dashboard`, sign in, and create a Looma API key.
+
+## Install and connect
+
+Install the public beta agent package:
+
+```bash
+npm i -g looma-agent
+looma setup claude-code --app-url http://localhost:3000 --api-key <token>
+LOOMA_API_URL=http://localhost:3000 LOOMA_API_KEY=<token> looma doctor
+```
+
+`looma setup claude-code` writes local Claude Code MCP and hook configuration in the current project.
+
+## Check `/mcp`
+
+In Claude Code, run:
+
+```text
+/mcp
+```
+
+Confirm the `looma` server exposes:
+
+- `record_start`
+- `record_event`
+- `record_stop`
+
+After `record_start`, Looma stores the active session in `~/.looma/active_session`, so `record_event` and `record_stop` can use the active session without repeating `sessionId`.
+
+## Add optional `/record`
+
+Create `.claude/commands/record.md` in the Claude Code project:
+
+```md
+---
+description: Start or stop a Looma recording through MCP.
+---
+
+Use the Looma MCP tools for recording.
+
+- If the user says `/record start <name>`, call `record_start` with that name, `harness: "claude-code"`, and the current workspace name.
+- If the user says `/record stop`, call `record_stop` without `sessionId`; Looma reads `~/.looma/active_session`.
+- Do not send secrets or full file contents through `record_event`.
+
+User arguments: $ARGUMENTS
+```
+
+This command is a convenience wrapper. MCP tools and hooks remain the source of truth.
+
+## Manual E2E
+
+1. Run `/record start "Claude Code smoke test"` or ask Claude to call `record_start`.
+2. Let Claude run a harmless `Read`, `Bash`, and edit in a throwaway workspace.
+3. Open the returned `/session/{sessionId}` URL.
+4. Confirm the recording indicator and event count update while the session is active.
+5. Run `/record stop` or call `record_stop`.
+6. Confirm the replay includes events, markers, chapters, notes, and behavior summary.

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Newsreader } from "next/font/google";
+import { RootProvider } from "fumadocs-ui/provider/next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { QueryProvider } from "@/providers/query-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
@@ -47,9 +48,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         className={`${geistSans.variable} ${geistMono.variable} ${newsreader.variable} font-sans antialiased`}
       >
         <ThemeProvider>
-          <NuqsAdapter>
-            <QueryProvider>{children}</QueryProvider>
-          </NuqsAdapter>
+          <RootProvider theme={{ enabled: false }} search={{ enabled: true }}>
+            <NuqsAdapter>
+              <QueryProvider>{children}</QueryProvider>
+            </NuqsAdapter>
+          </RootProvider>
           <AppToaster />
         </ThemeProvider>
       </body>
