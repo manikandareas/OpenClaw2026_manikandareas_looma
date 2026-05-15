@@ -5,23 +5,24 @@ import { getSupabaseEnv, getSupabaseServiceRoleKey } from "@/lib/env";
 
 export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
-  const { url, anonKey } = getSupabaseEnv();
+  const { url, publishableKey } = getSupabaseEnv();
 
   return createServerClient(
     url,
-    anonKey,
+    publishableKey,
     {
       cookies: {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(cookiesToSet) {
+        setAll(cookiesToSet, headers) {
+          void headers;
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
             );
           } catch {
-            // Server Components cannot set cookies; middleware handles session refresh.
+            // Server Components cannot set cookies; proxy handles session refresh.
           }
         },
       },

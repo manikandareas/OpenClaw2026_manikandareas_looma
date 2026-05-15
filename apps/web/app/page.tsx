@@ -7,7 +7,7 @@ const rawLog = [
   "$ bun test",
   "auth.test.ts failed: expected 401 received 500",
   "$ sed -n '1,220p' apps/api/auth.ts",
-  "$ apply_patch middleware session refresh",
+  "$ apply_patch proxy session refresh",
   "$ bun test",
   "42 passed, 0 failed"
 ];
@@ -80,7 +80,7 @@ export default function HomePage() {
                 ))}
               </div>
               <div className="space-y-2">
-                {["Auth middleware changed", "Failed test fixed", "Env handling touched"].map((item) => (
+                {["Auth proxy changed", "Failed test fixed", "Env handling touched"].map((item) => (
                   <div key={item} className="rounded-md border border-accent/30 bg-accent/10 px-3 py-2 text-sm">
                     {item}
                   </div>

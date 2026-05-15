@@ -1643,9 +1643,9 @@ Supabase Auth dengan `@supabase/ssr` untuk Next.js server-side authentication.
 
 ### Route Protection
 
-* **Protected routes**: `/dashboard`, `/sessions`, `/replay/*`, `/import`.
-* **Public routes**: `/`, `/login`, `/signup`.
-* **Middleware**: Next.js middleware (`middleware.ts`) untuk redirect unauthenticated users ke `/login`.
+* **Protected routes**: `/dashboard`, `/sessions`, `/import`.
+* **Public routes**: `/`, `/session/*`, `/auth/login`, `/auth/sign-up`.
+* **Proxy**: Next.js proxy (`proxy.ts`) untuk refresh Supabase Auth session dan redirect unauthenticated users ke `/auth/login`.
 
 ### Shared Replay Access
 
@@ -2352,7 +2352,7 @@ Shareable Replay Artifact
 
 * Next.js app with dark mode default.
 * Supabase database + Supabase Auth (email + password).
-* Authentication: login, signup, route protection middleware.
+* Authentication: login, signup, route protection proxy.
 * Dashboard page (recent sessions, activity chart, quick actions).
 * Sessions page (card grid with preview, filter, search).
 * Top navbar navigation.
@@ -2583,24 +2583,31 @@ Future:
 * ~~Configure dark mode as default (Tailwind dark class).~~
 * ~~Setup Supabase schema + Supabase Auth (email + password).~~
 * ~~Create login/signup pages di `apps/web/app/auth/login` dan `apps/web/app/auth/sign-up`.~~
-* ~~Setup Next.js middleware for route protection (`apps/web/middleware.ts`).~~
+* ~~Setup Next.js proxy for route protection (`apps/web/proxy.ts`).~~
 * ~~Create MCP server skeleton (record_start, record_event, record_stop) di `packages/mcp-server`.~~
 * ~~Create hook bridge script (PostToolCall → Looma API) di `packages/hook-bridge`.~~
 * ~~Define shared event schema + Zod types di `packages/shared` (`@looma/shared`).~~
 
-## Hour 1–3: Backend + App Pages Shell
+## Hour 1–3: Backend + App Pages Shell ✅ DONE
 
-* Create session API route handler di `apps/web/app/api/sessions/` (with user_id).
-* Create event ingestion API.
-* Create stop session API.
-* Create replay API.
-* Create import transcript API.
-* MCP server fully functional with Claude Code.
-* Hook bridge functional (reads ~/.looma/active_session, sends events).
-* Add Zod schemas + sample event JSON di `@looma/shared` atau `apps/web/config/`.
-* Build top navbar component di `apps/web/components/`.
-* Build Dashboard page → komposisi di `apps/web/app/dashboard/page.tsx`, komponen domain di `apps/web/features/dashboard/components/`.
-* Build Sessions page → `apps/web/app/sessions/page.tsx` + `apps/web/features/sessions/`.
+* ~~Create session API route handler di `apps/web/app/api/sessions/` (with user_id).~~
+* ~~Create event ingestion API.~~
+* ~~Create stop session API.~~
+* ~~Create replay API.~~
+* ~~Create import transcript API (enhanced: multi-event JSON array parsing with redaction).~~
+* ~~Add `GET /api/sessions` — list sessions with filtering (status, search), pagination (limit/offset), marker counts.~~
+* ~~Add `GET /api/sessions/[sessionId]` — single session detail with event/marker counts.~~
+* ~~MCP server fully functional with Claude Code.~~
+* ~~Hook bridge functional (reads ~/.looma/active_session, sends events).~~
+* ~~Add Zod schemas + sample event JSON di `@looma/shared` atau `apps/web/config/`.~~
+* ~~Install TanStack Query (`@tanstack/react-query`) + QueryProvider di `providers/query-provider.tsx`.~~
+* ~~Shared types di `types/session.ts` (SessionCard, GetSessionsParams, GetSessionsResponse).~~
+* ~~Install shadcn components: badge, select, skeleton, separator, dropdown-menu.~~
+* ~~Build top navbar component dengan active route indicator + mobile menu (`features/app-shell/components/nav-links.tsx`).~~
+* ~~Build shared `components/session-card.tsx` (presentational, status badges, duration, markers).~~
+* ~~Build Dashboard page → komposisi di `apps/web/app/dashboard/page.tsx`, komponen domain di `apps/web/features/dashboard/components/` (stats, recent sessions, activity chart, quick actions).~~
+* ~~Build Sessions page → `apps/web/app/sessions/page.tsx` + `apps/web/features/sessions/` (list, filters, empty state).~~
+* ~~Build Import page → functional form di `features/import/components/import-form.tsx` (file upload, paste, submit, redirect).~~
 
 ## Hour 3–6: Reconstructed Screen Replay UI
 

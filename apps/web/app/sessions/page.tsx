@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AppNav } from "@/features/app-shell/components/app-nav";
+import { SessionList } from "@/features/sessions/components/session-list";
 
 export default function SessionsPage() {
   return (
@@ -14,14 +14,9 @@ export default function SessionsPage() {
             <Link href="/import">Import transcript</Link>
           </Button>
         </div>
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>No sessions yet</CardTitle>
-          </CardHeader>
-          <CardContent className="text-muted-foreground">
-            Start with the MCP server or import a transcript to populate this list.
-          </CardContent>
-        </Card>
+        <div className="mt-6">
+          <SessionList />
+        </div>
       </main>
     </>
   );

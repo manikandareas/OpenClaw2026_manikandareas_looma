@@ -1,4 +1,5 @@
-import { importTranscriptInputSchema } from "@looma/shared";
+import { importTranscriptInputSchema, normalizedEventInputSchema } from "@looma/shared";
+import { redactJson } from "@looma/shared";
 import { getApiActor, unauthorized } from "@/lib/api/auth";
 import { getReplayUrl } from "@/lib/api/replay-url";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
@@ -31,24 +32,75 @@ export async function POST(request: Request) {
     return Response.json({ error: sessionError.message }, { status: 500 });
   }
 
-  await supabase.from("events").insert({
-    session_id: session.id,
-    seq: 1,
-    timestamp: new Date().toISOString(),
-    type: "transcript_import",
-    category: "system",
-    source: "import",
-    actor: "user",
-    payload_json: { transcript: input.transcript },
-    redacted_payload_json: { transcript: input.transcript },
-    display_text: "Imported transcript",
-    sensitivity: "none",
-    redaction_applied: false
-  });
+  let normalizedEventCount = 0;
+
+  let parsedEvents: unknown[] | null = null;
+  try {
+    const parsed = JSON.parse(input.transcript);
+    if (Array.isArray(parsed)) {
+      parsedEvents = parsed;
+    }
+  } catch {
+    // Not valid JSON array — treat as raw transcript string
+  }
+
+  if (parsedEvents && parsedEvents.length > 0) {
+    const rows = parsedEvents.map((raw, index) => {
+      const event = normalizedEventInputSchema.safeParse(raw);
+      const payload = event.success ? event.data.payload : { raw };
+      const redacted = redactJson(payload);
+      const displayText = event.success
+        ? event.data.displayText || `Event ${index + 1}`
+        : `Imported event ${index + 1}`;
+
+      return {
+        session_id: session.id,
+        seq: index + 1,
+        timestamp: event.success && event.data.timestamp
+          ? event.data.timestamp
+          : new Date().toISOString(),
+        type: event.success ? event.data.type : "unknown",
+        category: event.success ? event.data.category : "system",
+        source: event.success ? (event.data.source || "import") : "import",
+        actor: event.success ? event.data.actor : "agent",
+        workspace_path: event.success ? event.data.workspacePath : null,
+        related_file: event.success ? event.data.relatedFile : null,
+        related_command: event.success ? event.data.relatedCommand : null,
+        payload_json: payload,
+        redacted_payload_json: redacted.value,
+        display_text: displayText,
+        sensitivity: event.success ? event.data.sensitivity : "none",
+        redaction_applied: redacted.redactionApplied,
+      };
+    });
+
+    const { error: insertError } = await supabase.from("events").insert(rows);
+    if (insertError) {
+      return Response.json({ error: insertError.message }, { status: 500 });
+    }
+    normalizedEventCount = rows.length;
+  } else {
+    await supabase.from("events").insert({
+      session_id: session.id,
+      seq: 1,
+      timestamp: new Date().toISOString(),
+      type: "transcript_import",
+      category: "system",
+      source: "import",
+      actor: "user",
+      payload_json: { transcript: input.transcript },
+      redacted_payload_json: { transcript: input.transcript },
+      display_text: "Imported transcript",
+      sensitivity: "none",
+      redaction_applied: false
+    });
+    normalizedEventCount = 1;
+  }
 
   return Response.json({
     sessionId: session.id,
     status: session.status,
-    replayUrl: getReplayUrl(session.id)
+    replayUrl: getReplayUrl(session.id),
+    normalizedEventCount,
   });
 }
