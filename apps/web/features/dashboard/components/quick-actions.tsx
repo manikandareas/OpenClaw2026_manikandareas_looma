@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { BookOpen, ChevronRight, FileText, Play, Radio } from "lucide-react";
+import { BookOpen, ChevronRight, FileText, KeyRound, Play, Radio } from "lucide-react";
 import { ClaudeCodeSetup } from "./claude-code-setup";
 
 type QuickActionsProps = {
@@ -27,6 +27,12 @@ const LINK_ACTIONS = [
     description: "Set up recording and replay review",
     href: "/docs",
     icon: BookOpen,
+  },
+  {
+    title: "API Keys",
+    description: "Manage keys for Claude Code capture",
+    href: "/api-keys",
+    icon: KeyRound,
   },
 ];
 

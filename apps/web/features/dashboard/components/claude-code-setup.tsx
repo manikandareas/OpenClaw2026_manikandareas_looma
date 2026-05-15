@@ -19,9 +19,10 @@ type ClaudeCodeSetupProps = {
 export function ClaudeCodeSetup({ appUrl }: ClaudeCodeSetupProps) {
   const [keyName, setKeyName] = useState("Claude Code local");
   const [createdToken, setCreatedToken] = useState<string | null>(null);
-  const { data } = useApiKeys();
+  const { data, isError, isPending } = useApiKeys();
   const createApiKey = useCreateApiKey();
   const revokeApiKey = useRevokeApiKey();
+  const keys = data?.keys ?? [];
 
   const tokenPlaceholder = createdToken ?? "<LOOMA_API_KEY>";
   const installCommand = "npm i -g looma-agent";
@@ -78,32 +79,49 @@ export function ClaudeCodeSetup({ appUrl }: ClaudeCodeSetupProps) {
             </p>
           )}
           <div className="space-y-2">
-            {(data?.keys ?? []).map((key) => (
-              <div
-                key={key.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm"
-              >
-                <div>
-                  <p className="font-medium">{key.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Created {formatDate(key.createdAt)}
-                    {key.lastUsedAt ? ` · Last used ${formatDate(key.lastUsedAt)}` : ""}
-                  </p>
+            <h4 className="text-xs font-medium uppercase tracking-normal text-muted-foreground">
+              Your API keys
+            </h4>
+            {isPending ? (
+              <p className="rounded-md border border-dashed px-3 py-3 text-sm text-muted-foreground">
+                Loading API keys...
+              </p>
+            ) : isError ? (
+              <p className="rounded-md border border-destructive/30 px-3 py-3 text-sm text-destructive">
+                Could not load API keys.
+              </p>
+            ) : keys.length === 0 ? (
+              <p className="rounded-md border border-dashed px-3 py-3 text-sm text-muted-foreground">
+                No API keys yet. Generate one above to connect Claude Code.
+              </p>
+            ) : (
+              keys.map((key) => (
+                <div
+                  key={key.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border px-3 py-2 text-sm"
+                >
+                  <div>
+                    <p className="font-medium">{key.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      Created {formatDate(key.createdAt)}
+                      {key.lastUsedAt ? ` · Last used ${formatDate(key.lastUsedAt)}` : ""}
+                    </p>
+                  </div>
+                  {key.revokedAt ? (
+                    <Badge variant="secondary">Revoked</Badge>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => revokeApiKey.mutate(key.id)}
+                      disabled={revokeApiKey.isPending}
+                    >
+                      <XCircle className="h-4 w-4" /> Revoke
+                    </Button>
+                  )}
                 </div>
-                {key.revokedAt ? (
-                  <Badge variant="secondary">Revoked</Badge>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => revokeApiKey.mutate(key.id)}
-                    disabled={revokeApiKey.isPending}
-                  >
-                    <XCircle className="h-4 w-4" /> Revoke
-                  </Button>
-                )}
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </section>
 
