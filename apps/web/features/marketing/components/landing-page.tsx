@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
-  ArrowRight,
   CheckCircle2,
   Clock3,
   Flag,
@@ -48,6 +47,53 @@ const demoFeatureTiles = [
     body: "Pin risky moments so reviewers know where to focus first.",
   },
 ];
+
+const footerColumns = [
+  {
+    heading: "Looma Review",
+    links: [
+      "Session replay",
+      "Terminal timeline",
+      "Diff review",
+      "Test chapters",
+      "Review markers",
+      "AI session notes",
+      "Behavior summary",
+      "Public session link",
+      "Import transcript",
+      "Dashboard",
+      "Replay workspace",
+    ],
+  },
+  {
+    heading: "Agent Runtime",
+    links: [
+      "Claude Code",
+      "Gemini CLI",
+      "Cursor",
+      "Windsurf",
+      "Cline",
+      "CrewAI",
+      "LangGraph",
+      "Pydantic AI",
+      "GitHub Copilot",
+      "Custom harness",
+    ],
+  },
+  {
+    heading: "Platform",
+    links: [
+      "API Reference",
+      "MCP Server",
+      "record_start",
+      "record_event",
+      "record_stop",
+      "Session API",
+      "Replay API",
+      "API Key",
+    ],
+  },
+] as const;
 
 export function LandingPage() {
   return (
@@ -173,47 +219,8 @@ export function LandingPage() {
 
       <WorkflowSection />
 
-      <section className="w-full">
-        <div className="mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
-          <div className="grid gap-8 rounded-lg border border-black/[0.06] bg-[#F5F3F1] p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
-            <div>
-              <p className="text-sm font-medium text-[#57534E]">
-                Built for async review
-              </p>
-              <h2 className="mt-2 max-w-2xl text-3xl font-semibold tracking-normal text-black sm:text-4xl">
-                Replace giant terminal transcripts with replay links people can
-                actually review.
-              </h2>
-            </div>
-            <Button
-              asChild
-              className="h-11 w-fit rounded-full bg-black px-5 text-white shadow-none hover:bg-black/85"
-            >
-              <Link href="/auth/sign-up">
-                Start recording
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <footer className="w-full border-t border-black/[0.06]">
-        <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-12 text-sm text-[#57534E] sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-14 lg:px-8 lg:py-16">
-          <p className="font-semibold text-black">Looma</p>
-          <div className="flex flex-wrap gap-4">
-            <Link href="/auth/login" className="hover:text-black">
-              Login
-            </Link>
-            <Link href="/auth/sign-up" className="hover:text-black">
-              Sign up
-            </Link>
-            <Link href="/session/demo" className="hover:text-black">
-              Demo replay
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <BottomCtaSection />
+      <LandingFooter />
     </main>
   );
 }
@@ -305,6 +312,103 @@ function TechnicalCrosshairFrame({
       <div className={cn("relative z-10", contentClassName)}>{children}</div>
     </div>
   );
+}
+
+function BottomCtaSection() {
+  return (
+    <section className="w-full bg-[#FDFCFC] py-12 sm:py-16 lg:py-20">
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="relative -mx-4 w-[calc(100%+2rem)] overflow-visible sm:-mx-6 sm:w-[calc(100%+3rem)] lg:-mx-8 lg:w-[calc(100%+4rem)]">
+          <TechnicalCrosshairFrame contentClassName="px-4 sm:px-6 lg:px-8">
+            <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center lg:gap-x-14 xl:gap-x-20">
+              <div className="min-w-0 space-y-4 sm:space-y-5">
+                <p className="text-[15px] leading-snug text-[#57534E] sm:text-base">
+                  Get started
+                </p>
+                <h2 className="font-display max-w-[min(100%,38rem)] text-[2.75rem] font-normal leading-[1.08] tracking-[-0.02em] text-black sm:text-5xl sm:leading-[1.06] lg:text-[3.25rem] lg:leading-[1.05] xl:max-w-[min(100%,40rem)] xl:text-[3.5rem]">
+                  The replay layer for autonomous coding agents
+                </h2>
+              </div>
+              <div className="flex flex-col gap-3 sm:flex-row lg:justify-end">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="h-14 shrink-0 rounded-full border-[#E0DFDD] bg-white px-7 text-base font-medium text-black shadow-[0_2px_10px_rgb(0_0_0/0.05)] hover:bg-[#F5F3F1]"
+                >
+                  <Link href="/auth/login">Talk to sales</Link>
+                </Button>
+                <Button
+                  asChild
+                  className="h-14 shrink-0 rounded-full bg-black px-7 text-base font-medium text-white shadow-none hover:bg-black/85"
+                >
+                  <Link href="/auth/sign-up">Create a replay</Link>
+                </Button>
+              </div>
+            </div>
+          </TechnicalCrosshairFrame>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LandingFooter() {
+  return (
+    <footer className="w-full bg-[#FDFCFC]">
+      <div className="mx-auto w-full max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8 lg:py-20">
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-x-10 sm:gap-y-12 lg:grid-cols-4 lg:gap-x-12 lg:gap-y-0 xl:gap-x-16">
+          <div className="sm:col-span-2 lg:col-span-1">
+            <Link
+              href="/"
+              className="inline-block text-xl font-semibold tracking-normal text-black"
+            >
+              Looma
+            </Link>
+          </div>
+
+          {footerColumns.map((column) => (
+            <div key={column.heading} className="min-w-0">
+              <h3 className="text-sm font-medium leading-snug text-[#57534E]">
+                {column.heading}
+              </h3>
+              <ul className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3">
+                {column.links.map((label) => (
+                  <li key={label}>
+                    <Link
+                      href={footerHrefFor(label)}
+                      className="text-sm leading-snug text-[#44403C] transition-colors hover:text-black"
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </footer>
+  );
+}
+
+function footerHrefFor(label: string) {
+  if (label === "Dashboard") {
+    return "/dashboard";
+  }
+
+  if (label === "Import transcript") {
+    return "/import";
+  }
+
+  if (label === "Public session link" || label === "Replay workspace") {
+    return "/session/demo";
+  }
+
+  if (label.includes("API") || label.startsWith("record_") || label === "MCP Server") {
+    return "#workflow";
+  }
+
+  return "#features";
 }
 
 function WorkflowSection() {
@@ -565,7 +669,7 @@ function IntegrationHarnessSection() {
         {/* Breakout horizontal: selebar inner max-w-7xl (melewati px-4/6/8) supaya frame tidak sempit menabrak baris judul + CTA */}
         <div className="relative -mx-4 mt-10 w-[calc(100%+2rem)] overflow-visible sm:-mx-6 sm:mt-12 sm:w-[calc(100%+3rem)] lg:-mx-8 lg:mt-14 lg:w-[calc(100%+4rem)]">
           <TechnicalCrosshairFrame>
-            <div className="grid w-full grid-cols-1 justify-items-center gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-x-10 sm:gap-y-9 md:grid-cols-3 md:gap-x-10 md:gap-y-10 lg:gap-x-12">
+            <div className="grid w-full grid-cols-2 justify-items-center gap-x-4 gap-y-7 sm:gap-x-10 sm:gap-y-9 md:grid-cols-3 md:gap-x-10 md:gap-y-10 lg:gap-x-12">
               {integrations.map((integration) => (
                 <div
                   key={integration.name}
