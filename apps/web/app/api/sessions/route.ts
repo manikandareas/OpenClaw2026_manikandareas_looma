@@ -1,7 +1,17 @@
-import { createSessionInputSchema } from "@looma/shared";
+import { createSessionInputSchema, sessionStatusSchema } from "@looma/shared";
 import { getApiActor, unauthorized } from "@/lib/api/auth";
 import { getReplayUrl } from "@/lib/api/replay-url";
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
+
+const SESSION_STATUSES = sessionStatusSchema.options;
+
+function parseStatusFilters(url: URL): string[] {
+  const raw = url.searchParams.getAll("status");
+  const unique = [...new Set(raw.filter(Boolean))];
+  return unique.filter((s): s is (typeof SESSION_STATUSES)[number] =>
+    (SESSION_STATUSES as readonly string[]).includes(s),
+  );
+}
 
 export async function GET(request: Request) {
   const actor = await getApiActor(request);
@@ -10,8 +20,10 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
-  const status = url.searchParams.get("status");
+  const statusList = parseStatusFilters(url);
   const search = url.searchParams.get("search");
+  const since = url.searchParams.get("since");
+  const until = url.searchParams.get("until");
   const limit = Math.min(Number(url.searchParams.get("limit") || "20"), 50);
   const offset = Number(url.searchParams.get("offset") || "0");
 
@@ -24,8 +36,16 @@ export async function GET(request: Request) {
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);
 
-  if (status) {
-    query = query.eq("status", status);
+  if (since) {
+    query = query.gte("created_at", since);
+  }
+  if (until) {
+    query = query.lt("created_at", until);
+  }
+  if (statusList.length === 1) {
+    query = query.eq("status", statusList[0]);
+  } else if (statusList.length > 1) {
+    query = query.in("status", statusList);
   }
   if (search) {
     query = query.ilike("name", `%${search}%`);

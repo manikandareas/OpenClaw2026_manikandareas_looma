@@ -1,48 +1,71 @@
-import { resolve } from "node:path";
-import Link from "next/link";
-import { Import } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Suspense } from "react";
 import { AppNav } from "@/features/app-shell/components/app-nav";
 import { DashboardStats } from "@/features/dashboard/components/dashboard-stats";
 import { RecentSessions } from "@/features/dashboard/components/recent-sessions";
 import { QuickActions } from "@/features/dashboard/components/quick-actions";
 import { ActivityChart } from "@/features/dashboard/components/activity-chart";
+import { DashboardControls } from "@/features/dashboard/components/dashboard-controls";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getAppUrl } from "@/lib/env";
 
-export default function DashboardPage() {
-  const workspaceRoot = process.cwd().endsWith("apps/web")
-    ? resolve(process.cwd(), "../..")
-    : process.cwd();
-  const mcpServerPath = resolve(workspaceRoot, "packages/mcp-server/src/index.ts");
-  const hookBridgePath = resolve(workspaceRoot, "packages/hook-bridge/dist/index.js");
-
+function DashboardMainFallback() {
   return (
-    <>
-      <AppNav />
-      <main className="mx-auto max-w-6xl px-4 py-8">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-normal">Dashboard</h1>
-            <p className="mt-2 text-muted-foreground">
-              Recent sessions, activity, and recording entry points.
-            </p>
-          </div>
-          <Button asChild>
-            <Link href="/import">
-              <Import className="h-4 w-4" /> Import
-            </Link>
-          </Button>
+    <main className="py-8">
+      <div className="mx-auto max-w-[1000px] space-y-8 px-4 sm:px-6">
+        <Skeleton className="h-8 w-48 rounded-full" />
+        <div className="flex flex-wrap gap-12">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-24 rounded-lg" />
+          ))}
         </div>
+      </div>
+      <div className="mt-12 w-full px-4 sm:px-6">
+        <Skeleton className="h-[320px] w-full rounded-2xl" />
+      </div>
+      <div className="mx-auto mt-12 max-w-[1000px] px-4 sm:px-6">
+        <div className="grid gap-5 md:grid-cols-2">
+          <Skeleton className="h-64 rounded-2xl" />
+          <Skeleton className="h-64 rounded-2xl" />
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function DashboardMain({ appUrl }: { appUrl: string }) {
+  return (
+    <main className="py-8">
+      <div className="mx-auto max-w-[1000px] px-4 sm:px-6">
+        <DashboardControls />
+
         <div className="mt-8">
           <DashboardStats />
         </div>
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_320px]">
+      </div>
+
+      <div className="mt-12 w-full px-4 sm:px-6">
+        <ActivityChart />
+      </div>
+
+      <div className="mx-auto mt-12 max-w-[1000px] px-4 sm:px-6">
+        <div className="grid gap-5 md:grid-cols-2">
           <RecentSessions />
-          <ActivityChart />
+          <QuickActions appUrl={appUrl} />
         </div>
-        <div className="mt-8">
-          <QuickActions mcpServerPath={mcpServerPath} hookBridgePath={hookBridgePath} />
-        </div>
-      </main>
-    </>
+      </div>
+    </main>
+  );
+}
+
+export default function DashboardPage() {
+  const appUrl = getAppUrl();
+
+  return (
+    <div className="min-h-screen bg-background pb-12">
+      <AppNav />
+      <Suspense fallback={<DashboardMainFallback />}>
+        <DashboardMain appUrl={appUrl} />
+      </Suspense>
+    </div>
   );
 }

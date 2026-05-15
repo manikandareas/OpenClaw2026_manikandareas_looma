@@ -13,11 +13,10 @@ import {
 } from "@/features/dashboard/api/api-keys";
 
 type ClaudeCodeSetupProps = {
-  mcpServerPath: string;
-  hookBridgePath: string;
+  appUrl: string;
 };
 
-export function ClaudeCodeSetup({ mcpServerPath, hookBridgePath }: ClaudeCodeSetupProps) {
+export function ClaudeCodeSetup({ appUrl }: ClaudeCodeSetupProps) {
   const [keyName, setKeyName] = useState("Claude Code local");
   const [createdToken, setCreatedToken] = useState<string | null>(null);
   const { data } = useApiKeys();
@@ -25,54 +24,16 @@ export function ClaudeCodeSetup({ mcpServerPath, hookBridgePath }: ClaudeCodeSet
   const revokeApiKey = useRevokeApiKey();
 
   const tokenPlaceholder = createdToken ?? "<LOOMA_API_KEY>";
-  const mcpCommand = useMemo(
+  const installCommand = "npm i -g looma-agent";
+  const setupCommand = useMemo(
     () =>
-      `claude mcp add --transport stdio --env LOOMA_API_URL=http://localhost:3000 --env LOOMA_API_KEY=${tokenPlaceholder} looma -- bun ${mcpServerPath}`,
-    [mcpServerPath, tokenPlaceholder]
+      `looma setup claude-code --app-url ${appUrl} --api-key ${tokenPlaceholder}`,
+    [appUrl, tokenPlaceholder]
   );
-  const hookSettings = useMemo(
+  const doctorCommand = useMemo(
     () =>
-      JSON.stringify(
-        {
-          env: {
-            LOOMA_API_URL: "http://localhost:3000",
-            LOOMA_API_KEY: tokenPlaceholder
-          },
-          hooks: {
-            PostToolUse: [
-              {
-                matcher: "*",
-                hooks: [
-                  {
-                    type: "command",
-                    command: "node",
-                    args: [hookBridgePath],
-                    async: true,
-                    timeout: 30
-                  }
-                ]
-              }
-            ],
-            PostToolUseFailure: [
-              {
-                matcher: "*",
-                hooks: [
-                  {
-                    type: "command",
-                    command: "node",
-                    args: [hookBridgePath],
-                    async: true,
-                    timeout: 30
-                  }
-                ]
-              }
-            ]
-          }
-        },
-        null,
-        2
-      ),
-    [hookBridgePath, tokenPlaceholder]
+      `LOOMA_API_URL=${appUrl} LOOMA_API_KEY=${tokenPlaceholder} looma doctor`,
+    [appUrl, tokenPlaceholder]
   );
 
   async function handleCreateKey() {
@@ -81,11 +42,11 @@ export function ClaudeCodeSetup({ mcpServerPath, hookBridgePath }: ClaudeCodeSet
   }
 
   return (
-    <Card>
+    <Card className="rounded-lg shadow-none">
       <CardHeader className="space-y-1">
         <div className="flex items-center gap-2">
-          <div className="rounded-md bg-red-500/10 p-2">
-            <Radio className="h-4 w-4 text-red-400" />
+          <div className="rounded-md bg-muted p-2">
+            <Radio className="h-4 w-4 text-muted-foreground" />
           </div>
           <CardTitle className="text-lg">Claude Code Setup</CardTitle>
         </div>
@@ -147,15 +108,15 @@ export function ClaudeCodeSetup({ mcpServerPath, hookBridgePath }: ClaudeCodeSet
         </section>
 
         <SetupStep
-          title="2. Add Looma MCP server"
+          title="2. Install Looma agent"
           icon={<Terminal className="h-4 w-4 text-muted-foreground" />}
-          code={mcpCommand}
+          code={installCommand}
         />
 
         <SetupStep
-          title="3. Add hooks to .claude/settings.local.json"
+          title="3. Connect Claude Code"
           icon={<Terminal className="h-4 w-4 text-muted-foreground" />}
-          code={hookSettings}
+          code={setupCommand}
         />
 
         <section className="space-y-2">
@@ -164,10 +125,13 @@ export function ClaudeCodeSetup({ mcpServerPath, hookBridgePath }: ClaudeCodeSet
             <h3 className="text-sm font-medium">4. Verify</h3>
           </div>
           <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-3">
-            <p className="rounded-md border border-border px-3 py-2">Run `/mcp` and confirm Looma tools appear.</p>
+            <p className="rounded-md border border-border px-3 py-2">
+              Run <code className="text-foreground">looma doctor</code>.
+            </p>
             <p className="rounded-md border border-border px-3 py-2">Ask Claude to call `record_start`.</p>
             <p className="rounded-md border border-border px-3 py-2">Open the returned `/session/...` URL.</p>
           </div>
+          <CodeBlock value={doctorCommand} />
         </section>
       </CardContent>
     </Card>
@@ -196,8 +160,8 @@ function SetupStep({
 
 function SecretBlock({ value }: { value: string }) {
   return (
-    <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3">
-      <p className="mb-2 text-xs text-yellow-200">Copy this token now. Looma stores only its SHA-256 hash.</p>
+    <div className="rounded-md border bg-muted/40 p-3">
+      <p className="mb-2 text-xs text-muted-foreground">Copy this token now. Looma stores only its SHA-256 hash.</p>
       <CodeBlock value={value} />
     </div>
   );
