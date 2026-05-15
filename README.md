@@ -107,7 +107,7 @@ flowchart LR
   E --> F[(Supabase Postgres)]
   F --> G[lens-agent Processing]
   G --> F
-  F --> H[Replay Page /sessions/{sessionId}]
+  F --> H["Replay Page /sessions/{sessionId}"]
 ```
 
 PRD-level flow:
