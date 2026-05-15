@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { selectInterestingMarker } from "./interesting-marker";
+import { resolveFinalOutput } from "./final-output";
 import { eventToFrame, eventToMode } from "./replay-frame";
 import { buildEmbedSnippet } from "./share";
 import type { ReplayEvent } from "../types/replay";
@@ -29,6 +30,41 @@ describe("replay interesting marker selection", () => {
 
   test("returns null without review markers", () => {
     expect(selectInterestingMarker([makeMarker({ needs_review: false })], 0)).toBeNull();
+  });
+});
+
+describe("replay final output resolver", () => {
+  test("resolves an explicit final output event", () => {
+    const finalOutput = resolveFinalOutput([
+      makeEvent({ seq: 1, type: "terminal_output", display_text: "Build passed" }),
+      makeEvent({
+        id: "event-2",
+        seq: 2,
+        type: "final_output",
+        display_text: "Final summary",
+        redacted_payload_json: {
+          title: "Merged summary",
+          content: "Implemented the session final output panel.",
+          format: "markdown",
+        },
+      }),
+    ]);
+
+    expect(finalOutput).toMatchObject({
+      title: "Merged summary",
+      content: "Implemented the session final output panel.",
+      format: "markdown",
+      sourceEventId: "event-2",
+      seq: 2,
+      isExplicit: true,
+    });
+  });
+
+  test("does not treat a terminal tail as final output", () => {
+    expect(resolveFinalOutput([
+      makeEvent({ seq: 1, type: "terminal_command", display_text: "$ bun build" }),
+      makeEvent({ seq: 2, type: "terminal_output", display_text: "Build passed" }),
+    ])).toBeNull();
   });
 });
 

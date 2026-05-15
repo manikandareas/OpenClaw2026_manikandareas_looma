@@ -59,16 +59,29 @@ export async function GET(request: Request) {
 
   const sessionIds = (sessions ?? []).map((s) => s.id);
   const markerCounts: Record<string, number> = {};
+  const eventCounts: Record<string, number> = {};
 
   if (sessionIds.length > 0) {
-    const { data: markers } = await supabase
-      .from("markers")
-      .select("session_id")
-      .in("session_id", sessionIds);
+    const [{ data: markers }, { data: events }] = await Promise.all([
+      supabase
+        .from("markers")
+        .select("session_id")
+        .in("session_id", sessionIds),
+      supabase
+        .from("events")
+        .select("session_id")
+        .in("session_id", sessionIds),
+    ]);
 
     if (markers) {
       for (const m of markers) {
         markerCounts[m.session_id] = (markerCounts[m.session_id] || 0) + 1;
+      }
+    }
+
+    if (events) {
+      for (const e of events) {
+        eventCounts[e.session_id] = (eventCounts[e.session_id] || 0) + 1;
       }
     }
   }
@@ -80,6 +93,7 @@ export async function GET(request: Request) {
     harness: s.harness,
     agentName: s.agent_name,
     durationMs: s.duration_ms,
+    eventCount: eventCounts[s.id] || 0,
     markerCount: markerCounts[s.id] || 0,
     createdAt: s.created_at,
     startedAt: s.started_at,

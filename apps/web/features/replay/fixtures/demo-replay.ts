@@ -211,6 +211,15 @@ const events = [
         "Route (app)\n/session/[sessionId]\n/session/[sessionId]/opengraph-image\n/api/sessions/[sessionId]/replay",
     },
   }),
+  makeEvent(26, "final_output", {
+    display_text: "Final implementation summary",
+    redacted_payload_json: {
+      title: "Final implementation summary",
+      format: "markdown",
+      content:
+        "Implemented a public replay session route with autoplay demo, review-first markers, share controls, embed mode, metadata previews, and verification through typecheck, lint, tests, and production build.",
+    },
+  }),
 ] satisfies ReplayEvent[];
 
 const markers = [
@@ -273,6 +282,18 @@ export const demoReplayData = {
     applied: true,
     policy: "demo-fixture-light",
     redactedFields: ["absolutePaths", "environmentValues", "privateOutput"],
+  },
+  finalOutput: {
+    title: "Final implementation summary",
+    content:
+      "Implemented a public replay session route with autoplay demo, review-first markers, share controls, embed mode, metadata previews, and verification through typecheck, lint, tests, and production build.",
+    format: "markdown",
+    sourceEventId: "demo-event-26",
+    seq: 26,
+    timestamp: new Date(new Date(STARTED_AT).getTime() + 25 * 17_500).toISOString(),
+    sensitivity: "none",
+    redactionApplied: false,
+    isExplicit: true,
   },
 } satisfies ReplayData;
 

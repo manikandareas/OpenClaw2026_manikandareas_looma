@@ -2,6 +2,9 @@ import { processSessionInputSchema } from "@looma/shared";
 import { runLensAgent } from "@/features/lens-agent/api/run-lens-agent";
 import { getApiActor, unauthorized } from "@/lib/api/auth";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 type RouteContext = {
   params: Promise<{ sessionId: string }>;
 };

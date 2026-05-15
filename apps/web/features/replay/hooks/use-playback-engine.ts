@@ -15,6 +15,7 @@ import { computeDelay } from "../utils/timing";
 const INITIAL_STATE: PlaybackState = {
   currentIndex: 0,
   isPlaying: false,
+  playbackMode: "paused",
   speed: 1,
   currentMode: "terminal",
   currentFile: null,
@@ -23,12 +24,13 @@ const INITIAL_STATE: PlaybackState = {
 
 export function usePlaybackEngine(
   events: ReplayEvent[],
-  { autoPlay = false }: { autoPlay?: boolean } = {}
+  { autoPlay = false, live = false }: { autoPlay?: boolean; live?: boolean } = {}
 ) {
-  const [state, setState] = useState<PlaybackState>(() => getInitialState(events));
+  const [state, setState] = useState<PlaybackState>(() => getInitialState(events, undefined, live));
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateRef = useRef(state);
   const eventsRef = useRef(events);
+  const liveRef = useRef(live);
 
   useEffect(() => {
     stateRef.current = state;
@@ -37,6 +39,21 @@ export function usePlaybackEngine(
   useEffect(() => {
     eventsRef.current = events;
   }, [events]);
+
+  useEffect(() => {
+    liveRef.current = live;
+    if (live && eventsRef.current.length > 0 && stateRef.current.playbackMode === "paused") {
+      const nextState = getStateForIndex(
+        eventsRef.current,
+        eventsRef.current.length - 1,
+        stateRef.current,
+        "live",
+        false
+      );
+      stateRef.current = nextState;
+      setState(nextState);
+    }
+  }, [live]);
 
   const clearTimer = useCallback(() => {
     if (timerRef.current !== null) {
@@ -58,11 +75,37 @@ export function usePlaybackEngine(
   const scheduleNextRef = useRef<() => void>(() => {});
 
   useEffect(() => {
+    eventsRef.current = events;
     clearTimer();
-    const nextState = getInitialState(events, stateRef.current.speed);
+
+    if (events.length === 0) {
+      const nextState = getInitialState(events, stateRef.current.speed, live);
+      stateRef.current = nextState;
+      setState(nextState);
+      return;
+    }
+
+    const currentState = stateRef.current;
+    const shouldFollowLive = live && currentState.playbackMode === "live";
+    const nextIndex = shouldFollowLive
+      ? events.length - 1
+      : Math.min(currentState.currentIndex, events.length - 1);
+    const nextMode = shouldFollowLive ? "live" : currentState.playbackMode;
+    const nextState = getStateForIndex(
+      events,
+      nextIndex,
+      currentState,
+      nextMode,
+      currentState.isPlaying
+    );
+
     stateRef.current = nextState;
     setState(nextState);
-  }, [clearTimer, events]);
+
+    if (nextState.isPlaying) {
+      scheduleNextRef.current();
+    }
+  }, [clearTimer, events, live]);
 
   useEffect(() => {
     scheduleNextRef.current = () => {
@@ -71,7 +114,8 @@ export function usePlaybackEngine(
       const nextIndex = currentIndex + 1;
 
       if (nextIndex >= evts.length) {
-        stateRef.current = { ...stateRef.current, isPlaying: false };
+        const playbackMode = liveRef.current ? "live" : "paused";
+        stateRef.current = { ...stateRef.current, isPlaying: false, playbackMode };
         setState(stateRef.current);
         return;
       }
@@ -92,6 +136,7 @@ export function usePlaybackEngine(
           currentMode: mode,
           currentFile: file,
           progress: evts.length > 1 ? nextIndex / (evts.length - 1) : 0,
+          playbackMode: "playing" as const,
         };
 
         stateRef.current = nextState;
@@ -112,10 +157,10 @@ export function usePlaybackEngine(
 
     if (currentIndex >= evts.length - 1) {
       const initial = getInitialState(evts, speed);
-      stateRef.current = { ...initial, isPlaying: true };
+      stateRef.current = { ...initial, isPlaying: true, playbackMode: "playing" };
       setState(stateRef.current);
     } else {
-      stateRef.current = { ...stateRef.current, isPlaying: true };
+      stateRef.current = { ...stateRef.current, isPlaying: true, playbackMode: "playing" };
       setState(stateRef.current);
     }
 
@@ -129,7 +174,7 @@ export function usePlaybackEngine(
 
   const pause = useCallback(() => {
     clearTimer();
-    stateRef.current = { ...stateRef.current, isPlaying: false };
+    stateRef.current = { ...stateRef.current, isPlaying: false, playbackMode: "paused" };
     setState(stateRef.current);
   }, [clearTimer]);
 
@@ -139,10 +184,12 @@ export function usePlaybackEngine(
       const evts = eventsRef.current;
       const clampedIndex = Math.max(0, Math.min(index, evts.length - 1));
       const { mode, file } = resolveMode(clampedIndex, stateRef.current.currentMode);
-      const wasPlaying = stateRef.current.isPlaying;
+      const atLiveEdge = liveRef.current && clampedIndex >= evts.length - 1;
       const nextState = {
         ...stateRef.current,
         currentIndex: clampedIndex,
+        isPlaying: false,
+        playbackMode: atLiveEdge ? "live" as const : "scrubbed" as const,
         currentMode: mode,
         currentFile: file,
         progress: evts.length > 1 ? clampedIndex / (evts.length - 1) : 0,
@@ -150,13 +197,19 @@ export function usePlaybackEngine(
 
       stateRef.current = nextState;
       setState(nextState);
-
-      if (wasPlaying) {
-        scheduleNextRef.current();
-      }
     },
     [clearTimer, resolveMode]
   );
+
+  const goLive = useCallback(() => {
+    clearTimer();
+    const evts = eventsRef.current;
+    if (evts.length === 0) return;
+
+    const nextState = getStateForIndex(evts, evts.length - 1, stateRef.current, "live", false);
+    stateRef.current = nextState;
+    setState(nextState);
+  }, [clearTimer]);
 
   const setSpeed = useCallback(
     (speed: PlaybackSpeed) => {
@@ -197,6 +250,7 @@ export function usePlaybackEngine(
     pause,
     seekTo,
     setSpeed,
+    goLive,
     jumpToInteresting,
     currentEvent: events[state.currentIndex] ?? null,
   };
@@ -204,15 +258,41 @@ export function usePlaybackEngine(
 
 function getInitialState(
   events: ReplayEvent[],
-  speed: PlaybackSpeed = INITIAL_STATE.speed
+  speed: PlaybackSpeed = INITIAL_STATE.speed,
+  live = false
 ): PlaybackState {
-  const firstEvent = events[0];
+  const currentIndex = live && events.length > 0 ? events.length - 1 : 0;
+  const firstEvent = events[currentIndex];
   const currentMode = firstEvent ? eventToMode(firstEvent.type) ?? "terminal" : "terminal";
 
   return {
     ...INITIAL_STATE,
+    currentIndex,
+    playbackMode: live ? "live" : "paused",
     speed,
     currentMode,
     currentFile: firstEvent?.related_file ?? null,
+    progress: events.length > 1 ? currentIndex / (events.length - 1) : 0,
+  };
+}
+
+function getStateForIndex(
+  events: ReplayEvent[],
+  index: number,
+  currentState: PlaybackState,
+  playbackMode: PlaybackState["playbackMode"],
+  isPlaying: boolean
+): PlaybackState {
+  const event = events[index];
+  const currentMode = event ? eventToMode(event.type) ?? currentState.currentMode : currentState.currentMode;
+
+  return {
+    ...currentState,
+    currentIndex: index,
+    isPlaying,
+    playbackMode,
+    currentMode,
+    currentFile: event?.related_file ?? null,
+    progress: events.length > 1 ? index / (events.length - 1) : 0,
   };
 }

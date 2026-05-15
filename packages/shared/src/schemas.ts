@@ -34,6 +34,15 @@ export const markerSeveritySchema = z.enum([
   "sensitive"
 ]);
 
+export const finalOutputFormatSchema = z.enum(["text", "markdown", "json"]);
+
+export const finalOutputInputSchema = z.object({
+  title: z.string().min(1).max(160).optional(),
+  content: z.string().min(1).max(12000),
+  format: finalOutputFormatSchema.default("markdown"),
+  sensitivity: sensitivitySchema.default("none")
+});
+
 export const createSessionInputSchema = z.object({
   name: z.string().min(1).max(160),
   harness: z.string().min(1).max(80).default("unknown"),
@@ -58,7 +67,8 @@ export const normalizedEventInputSchema = z.object({
 });
 
 export const stopSessionInputSchema = z.object({
-  status: sessionStatusSchema.default("processing")
+  status: sessionStatusSchema.default("processing"),
+  finalOutput: finalOutputInputSchema.optional()
 });
 
 export const processSessionInputSchema = z.object({
@@ -91,10 +101,12 @@ export const mcpRecordEventInputSchema = normalizedEventInputSchema.extend({
 });
 
 export const mcpRecordStopInputSchema = z.object({
-  sessionId: z.string().uuid().optional()
+  sessionId: z.string().uuid().optional(),
+  finalOutput: finalOutputInputSchema.optional()
 });
 
 export type CreateSessionInput = z.infer<typeof createSessionInputSchema>;
 export type NormalizedEventInput = z.infer<typeof normalizedEventInputSchema>;
+export type FinalOutputInput = z.infer<typeof finalOutputInputSchema>;
 export type ImportTranscriptInput = z.infer<typeof importTranscriptInputSchema>;
 export type ReplayMetadata = z.infer<typeof replayMetadataSchema>;

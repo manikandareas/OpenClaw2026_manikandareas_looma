@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import type { PlaybackSpeed, ReplayEvent } from "../types/replay";
 import { eventToFrame } from "../utils/replay-frame";
 
@@ -10,144 +9,75 @@ type TerminalRendererProps = {
 };
 
 export function TerminalRenderer({ event, speed }: TerminalRendererProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const terminalRef = useRef<import("@xterm/xterm").Terminal | null>(null);
-  const fitAddonRef = useRef<import("@xterm/addon-fit").FitAddon | null>(null);
-  const lastEventSeqRef = useRef<number>(-1);
-  const latestEventRef = useRef<ReplayEvent | null>(event);
-  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const frame = eventToFrame(event);
 
-  useEffect(() => {
-    let mounted = true;
+  if (frame.mode !== "terminal") {
+    return null;
+  }
 
-    async function init() {
-      if (!containerRef.current || terminalRef.current) return;
-
-      const { Terminal } = await import("@xterm/xterm");
-      const { FitAddon } = await import("@xterm/addon-fit");
-      await import("@xterm/xterm/css/xterm.css");
-
-      if (!mounted || !containerRef.current) return;
-
-      const fitAddon = new FitAddon();
-      const terminal = new Terminal({
-        convertEol: true,
-        cursorBlink: false,
-        cursorStyle: "bar",
-        disableStdin: true,
-        fontSize: 13,
-        fontFamily: "var(--font-mono), 'JetBrains Mono', 'Fira Code', monospace",
-        lineHeight: 1.4,
-        scrollback: 10_000,
-        theme: {
-          background: "#08090d",
-          foreground: "#f7f7f8",
-          cursor: "#22c55e",
-          cursorAccent: "#08090d",
-          selectionBackground: "#22c55e33",
-          black: "#08090d",
-          red: "#ef4444",
-          green: "#22c55e",
-          yellow: "#eab308",
-          blue: "#3b82f6",
-          magenta: "#a855f7",
-          cyan: "#06b6d4",
-          white: "#f7f7f8",
-          brightBlack: "#6b7280",
-          brightRed: "#f87171",
-          brightGreen: "#4ade80",
-          brightYellow: "#fde047",
-          brightBlue: "#60a5fa",
-          brightMagenta: "#c084fc",
-          brightCyan: "#22d3ee",
-          brightWhite: "#ffffff",
-        },
-      });
-
-      terminal.loadAddon(fitAddon);
-      terminal.open(containerRef.current);
-      fitAddon.fit();
-      resizeObserverRef.current = new ResizeObserver(() => fitAddon.fit());
-      resizeObserverRef.current.observe(containerRef.current);
-
-      terminalRef.current = terminal;
-      fitAddonRef.current = fitAddon;
-
-      renderFrame(terminal, latestEventRef.current);
-      lastEventSeqRef.current = latestEventRef.current?.seq ?? -1;
-    }
-
-    init();
-
-    return () => {
-      mounted = false;
-      resizeObserverRef.current?.disconnect();
-      resizeObserverRef.current = null;
-      terminalRef.current?.dispose();
-      terminalRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleResize = () => fitAddonRef.current?.fit();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
-  useEffect(() => {
-    latestEventRef.current = event;
-    if (!event || !terminalRef.current) return;
-    if (event.seq === lastEventSeqRef.current) return;
-    lastEventSeqRef.current = event.seq;
-
-    renderFrame(terminalRef.current, event, speed);
-  }, [event, speed]);
+  const output = formatTerminalOutput(frame.output, speed);
 
   return (
-    <div
-      ref={containerRef}
-      className="h-full w-full p-2"
-      style={{ backgroundColor: "#08090d" }}
-    />
+    <div className="h-full w-full overflow-auto bg-[#08090d] px-3 py-3 font-mono text-[12px] leading-[1.45] text-[#f4f4f5] sm:px-4 sm:py-4 sm:text-[13px]">
+      <div className="space-y-3">
+        {frame.command ? (
+          <div className="rounded-md border border-white/10 bg-white/[0.035] px-3 py-2">
+            <div className="mb-1 flex items-center justify-between gap-3 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+              <span>Command</span>
+              {frame.statusText ? (
+                <span className={frame.failed ? "text-red-300" : "text-zinc-500"}>
+                  {frame.statusText}
+                </span>
+              ) : null}
+            </div>
+            <pre className="whitespace-pre-wrap break-words text-zinc-100">
+              <span className={frame.failed ? "text-red-300" : "text-emerald-300"}>$</span>{" "}
+              {stripAnsi(frame.command)}
+            </pre>
+          </div>
+        ) : null}
+
+        {!frame.command && frame.statusText ? (
+          <div className={frame.failed ? "text-red-300" : "text-zinc-500"}>{frame.statusText}</div>
+        ) : null}
+
+        {output.visible.length > 0 ? (
+          <div className="rounded-md border border-white/10 bg-black/25">
+            <div className="border-b border-white/10 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-zinc-500">
+              Output
+            </div>
+            <pre className="whitespace-pre-wrap break-words px-3 py-3 text-zinc-200">
+              {output.visible.join("\n")}
+            </pre>
+            {output.hiddenLineCount > 0 ? (
+              <div className="border-t border-white/10 px-3 py-2 text-xs text-zinc-500">
+                ... {output.hiddenLineCount} more preview lines truncated
+              </div>
+            ) : null}
+          </div>
+        ) : (
+          <div className="rounded-md border border-dashed border-white/10 px-3 py-3 text-zinc-500">
+            No terminal output preview for this event.
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
-function renderFrame(
-  terminal: import("@xterm/xterm").Terminal,
-  event: ReplayEvent | null,
-  speed: number = 1
-) {
-  const frame = eventToFrame(event);
-  if (frame.mode !== "terminal") return;
+function formatTerminalOutput(value: string, speed: PlaybackSpeed) {
+  const maxLines = speed >= 4 ? 120 : 80;
+  const lines = stripAnsi(value).replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
 
-  terminal.clear();
-  terminal.reset();
-  terminal.write("\x1b[2J\x1b[H");
-
-  if (frame.command) {
-    terminal.writeln(`${frame.failed ? "\x1b[31m" : "\x1b[32m"}$ \x1b[0m${frame.command}`);
-  }
-
-  if (frame.statusText) {
-    terminal.writeln(`${frame.failed ? "\x1b[31m" : "\x1b[90m"}${frame.statusText}\x1b[0m`);
-  }
-
-  if (!frame.output) return;
-
-  const chunks = chunkLines(frame.output, speed >= 4 ? 120 : 80);
-  terminal.write(chunks[0] ?? "");
-
-  for (const chunk of chunks.slice(1)) {
-    terminal.write(chunk);
-  }
+  return {
+    visible: lines.slice(0, maxLines),
+    hiddenLineCount: Math.max(0, lines.length - maxLines),
+  };
 }
 
-function chunkLines(value: string, maxLines: number): string[] {
-  const lines = value.split("\n");
-  if (lines.length <= maxLines) return [value];
-
-  return [
-    lines.slice(0, maxLines).join("\n"),
-    `\n\x1b[90m... ${lines.length - maxLines} more preview lines truncated in viewport\x1b[0m`
-  ];
+function stripAnsi(value: string): string {
+  return value.replace(
+    /[\u001B\u009B][[\]()#;?]*(?:(?:(?:[a-zA-Z\d]*(?:;[a-zA-Z\d]*)*)?\u0007)|(?:(?:\d{1,4}(?:;\d{0,4})*)?[\dA-PR-TZcf-nq-uy=><~]))/g,
+    ""
+  );
 }

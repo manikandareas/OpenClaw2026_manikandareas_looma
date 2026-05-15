@@ -91,7 +91,7 @@ export function WorkflowSection() {
               variant="outline"
               className="h-10 w-fit shrink-0 rounded-full px-5 text-sm shadow-sm sm:h-11 sm:px-6 sm:text-base"
             >
-              <Link href="/import">Explore docs</Link>
+              <Link href="/docs">Explore docs</Link>
             </Button>
           </motion.div>
         </div>

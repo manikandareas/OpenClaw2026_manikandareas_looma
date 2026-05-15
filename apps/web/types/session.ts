@@ -12,6 +12,7 @@ export type SessionCard = {
   harness: string;
   agentName: string | null;
   durationMs: number | null;
+  eventCount: number;
   markerCount: number;
   createdAt: string;
   startedAt: string;

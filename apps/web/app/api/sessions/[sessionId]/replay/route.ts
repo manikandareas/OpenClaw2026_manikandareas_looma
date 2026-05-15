@@ -1,5 +1,6 @@
 import { createSupabaseAdminClient } from "@/lib/supabase/server";
 import { demoReplayData } from "@/features/replay/fixtures/demo-replay";
+import { resolveFinalOutput } from "@/features/replay/utils/final-output";
 
 type RouteContext = {
   params: Promise<{ sessionId: string }>;
@@ -25,7 +26,11 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 
   const [events, markers, chapters, behaviorSummary, notes, metadata] = await Promise.all([
-    supabase.from("events").select("*").eq("session_id", sessionId).order("seq"),
+    supabase
+      .from("events")
+      .select("id, session_id, seq, timestamp, type, category, source, actor, workspace_path, related_file, related_command, redacted_payload_json, display_text, sensitivity, redaction_applied")
+      .eq("session_id", sessionId)
+      .order("seq"),
     supabase.from("markers").select("*").eq("session_id", sessionId).order("seq"),
     supabase.from("chapters").select("*").eq("session_id", sessionId).order("start_seq"),
     supabase.from("behavior_summary").select("*").eq("session_id", sessionId).maybeSingle(),
@@ -33,15 +38,21 @@ export async function GET(_request: Request, context: RouteContext) {
     supabase.from("replay_metadata").select("*").eq("session_id", sessionId).maybeSingle()
   ]);
 
+  const replayEvents = (events.data ?? []).map((event) => ({
+    ...event,
+    payload_json: event.redacted_payload_json ?? {},
+  }));
+
   return Response.json({
     session,
-    events: events.data ?? [],
+    events: replayEvents,
     markers: markers.data ?? [],
     chapters: chapters.data ?? [],
     behaviorSummary: normalizeBehaviorSummary(
       behaviorSummary.data ?? metadata.data?.behavior_summary_json
     ),
     notes: notes.data?.content ?? metadata.data?.notes ?? "",
+    finalOutput: resolveFinalOutput(replayEvents),
     redactionSummary: metadata.data?.redaction_summary_json ?? {}
   });
 }

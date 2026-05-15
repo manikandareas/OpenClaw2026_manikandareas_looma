@@ -1,0 +1,36 @@
+{
+  "name": "looma-agent",
+  "version": "0.1.0-beta.0",
+  "description": "Looma local agent bridge for MCP recording and Claude Code hooks.",
+  "type": "module",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "bin": {
+    "looma": "dist/cli.js",
+    "looma-agent": "dist/cli.js",
+    "looma-mcp": "dist/mcp.js",
+    "looma-hook": "dist/hook.js"
+  },
+  "scripts": {
+    "build": "bun build src/cli.ts src/mcp.ts src/hook.ts --outdir dist --target node --format esm && node scripts/fix-bin-permissions.mjs",
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit",
+    "prepack": "bun run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.24.3",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.2",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

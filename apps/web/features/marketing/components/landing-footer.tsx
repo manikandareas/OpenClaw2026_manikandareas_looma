@@ -15,7 +15,6 @@ const footerColumns = [
       "AI session notes",
       "Behavior summary",
       "Public session link",
-      "Import transcript",
       "Dashboard",
       "Replay workspace",
     ],
@@ -53,10 +52,6 @@ const footerColumns = [
 function footerHrefFor(label: string) {
   if (label === "Dashboard") {
     return "/dashboard";
-  }
-
-  if (label === "Import transcript") {
-    return "/import";
   }
 
   if (label === "Public session link" || label === "Replay workspace") {

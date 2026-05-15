@@ -47,9 +47,16 @@ Call `record_stop` when the agent is done.
 
 ```json
 {
-  "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+  "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
+  "finalOutput": {
+    "title": "Final answer",
+    "content": "Shipped the auth flow and verified login, refresh, and logout paths.",
+    "format": "markdown"
+  }
 }
 ```
+
+The `finalOutput` field is optional. Passing it makes the final agent response visible on `/session/{sessionId}` without digging through the timeline.
 
 After stop, Looma marks the session as `processing` and prepares replay metadata.
 
@@ -63,4 +70,4 @@ After stop, Looma marks the session as `processing` and prepares replay metadata
 
 ## Open the replay
 
-Open `/session/{sessionId}` to review the session timeline, terminal output, diffs, test results, chapters, notes, and Needs Review markers.
+Open `/session/{sessionId}` to review the session timeline, terminal output, diffs, test results, final output, chapters, notes, and Needs Review markers.

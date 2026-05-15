@@ -532,7 +532,7 @@ MCP (Model Context Protocol) adalah **primary integration path** Looma, bukan fa
 
 MCP server Looma adalah TypeScript MCP server yang:
 
-* Dapat diinstall via local path di Claude Code MCP config (`~/.claude/settings.json`).
+* Dapat diinstall via paket `looma-agent`, tanpa bergantung pada path repo lokal.
 * Menyediakan minimal 3 tools yang benar-benar fungsional: `record_start`, `record_event`, `record_stop`.
 * Berkomunikasi langsung dengan Looma backend API.
 * Dapat digunakan dari agent harness manapun yang mendukung MCP (Claude Code, OpenCode, dll).
@@ -540,7 +540,8 @@ MCP server Looma adalah TypeScript MCP server yang:
 #### MCP Server Config Example
 
 ```bash
-claude mcp add --transport stdio --env LOOMA_API_URL=http://localhost:3000 --env LOOMA_API_KEY=<token> looma -- bun /abs/path/packages/mcp-server/src/index.ts
+npm i -g looma-agent
+looma setup claude-code --app-url http://localhost:3000 --api-key <token>
 ```
 
 API key dibuat dari dashboard authenticated Looma. Token ditampilkan sekali, lalu Looma hanya menyimpan SHA-256 hash di tabel `api_keys`.
@@ -589,46 +590,13 @@ Hooks perlu tahu apakah sedang ada recording aktif. Solusinya menggunakan file m
 * Hook `PostToolUse` / `PostToolUseFailure` → membaca file tersebut. Jika ada → kirim event. Jika tidak ada → skip.
 * `record_stop` dipanggil → MCP server menghapus `~/.looma/active_session`.
 
-#### Claude Code Hooks Config Example
+#### Claude Code Setup Command
 
-```json
-{
-  "env": {
-    "LOOMA_API_URL": "http://localhost:3000",
-    "LOOMA_API_KEY": "<token>"
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node",
-            "args": ["/abs/path/packages/hook-bridge/dist/index.js"],
-            "async": true,
-            "timeout": 30
-          }
-        ]
-      }
-    ],
-    "PostToolUseFailure": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node",
-            "args": ["/abs/path/packages/hook-bridge/dist/index.js"],
-            "async": true,
-            "timeout": 30
-          }
-        ]
-      }
-    ]
-  }
-}
+```bash
+looma setup claude-code --app-url http://localhost:3000 --api-key <token>
 ```
+
+Command ini menulis MCP stdio config dan hook config lokal untuk menjalankan `looma-mcp` dan `looma-hook` dari paket `looma-agent`.
 
 Claude Code command hooks mengirim input sebagai JSON melalui `stdin`; hook bridge tidak membaca `$TOOL_NAME`, `$TOOL_INPUT`, atau `$TOOL_OUTPUT`.
 

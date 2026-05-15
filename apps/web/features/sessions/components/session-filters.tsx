@@ -1,6 +1,7 @@
 "use client";
 
 import { Input } from "@/components/ui/input";
+import { Search, ListFilter } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -42,25 +43,36 @@ export function SessionFilters({ onFilterChange }: Props) {
   }, [status, debouncedSearch, onFilterChange]);
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-      <Input
-        placeholder="Search sessions..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="sm:max-w-[240px]"
-      />
-      <Select value={status} onValueChange={setStatus}>
-        <SelectTrigger className="sm:w-[160px]">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {STATUS_OPTIONS.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div className="flex items-center justify-between pb-4 border-b border-border/40">
+      <div className="flex items-center">
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="h-8 rounded-full border-transparent bg-muted/50 px-3 text-xs font-medium hover:bg-muted focus:ring-0 focus:ring-offset-0 shadow-none">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl">
+            {STATUS_OPTIONS.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value} className="rounded-lg text-xs">
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <div className="flex items-center gap-2">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Search..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-8 w-[100px] sm:w-[140px] rounded-full border-transparent bg-muted/50 pl-8 text-xs hover:bg-muted focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none transition-all focus-visible:w-[180px]"
+          />
+        </div>
+        <button className="flex h-8 w-8 items-center justify-center rounded-full bg-muted/50 text-muted-foreground hover:bg-muted transition-colors">
+          <ListFilter className="h-3.5 w-3.5" />
+        </button>
+      </div>
     </div>
   );
 }

@@ -97,66 +97,15 @@ Start the web app:
 bun run dev
 ```
 
-Start the MCP server:
+For public beta installs, use the packaged agent bridge instead of repo-local paths:
 
 ```bash
-LOOMA_API_URL=http://localhost:3000 LOOMA_API_KEY=... bun run mcp
+npm i -g looma-agent
+looma setup claude-code --app-url http://localhost:3000 --api-key <token>
+LOOMA_API_URL=http://localhost:3000 LOOMA_API_KEY=<token> looma doctor
 ```
 
 Generate `LOOMA_API_KEY` from the authenticated dashboard setup panel. Looma shows the token once and stores only a SHA-256 hash in `api_keys`.
-
-For Claude Code local stdio MCP:
-
-```bash
-claude mcp add --transport stdio --env LOOMA_API_URL=http://localhost:3000 --env LOOMA_API_KEY=<token> looma -- bun /abs/path/packages/mcp-server/src/index.ts
-```
-
-Build the hook bridge for agent hook integrations:
-
-```bash
-bun run hook-bridge:build
-```
-
-Example Claude Code hooks in `.claude/settings.local.json` after building. Command hooks receive JSON on stdin, so no `$TOOL_NAME` arguments are needed:
-
-```json
-{
-  "env": {
-    "LOOMA_API_URL": "http://localhost:3000",
-    "LOOMA_API_KEY": "<token>"
-  },
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node",
-            "args": ["/abs/path/packages/hook-bridge/dist/index.js"],
-            "async": true,
-            "timeout": 30
-          }
-        ]
-      }
-    ],
-    "PostToolUseFailure": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node",
-            "args": ["/abs/path/packages/hook-bridge/dist/index.js"],
-            "async": true,
-            "timeout": 30
-          }
-        ]
-      }
-    ]
-  }
-}
-```
 
 Verification commands:
 
@@ -183,7 +132,7 @@ Two-minute judge-friendly path:
 
 1. Start the web app and open the dashboard.
 2. Open **Start Recording** and generate a Looma API key.
-3. Add the Claude Code MCP server and hooks from the setup panel.
+3. Install `looma-agent` and run the setup command from the setup panel.
 4. Verify `/mcp` shows Looma tools.
 5. Start a recording from the agent harness with `record_start` or `/record start`.
 6. Let the agent run; hooks capture `Bash`, `Read`, `Write`, `Edit`, `MultiEdit`, `Glob`, `Grep`, `LS`, and failures.
@@ -295,6 +244,7 @@ apps/web/                         Next.js 16 App Router web app
 apps/web/app/api/sessions/        Recording, event, stop, process, and replay API routes
 apps/web/app/session/[sessionId]/ Public replay page route
 packages/shared/                  Shared Zod schemas, event contracts, and redaction helpers
+packages/looma-agent/             Publishable CLI package with looma, looma-mcp, and looma-hook bins
 packages/mcp-server/              Local stdio MCP server exposing record_start/event/stop
 packages/hook-bridge/             Agent hook bridge for implicit tool-call capture
 supabase/migrations/              Supabase Postgres schema migrations

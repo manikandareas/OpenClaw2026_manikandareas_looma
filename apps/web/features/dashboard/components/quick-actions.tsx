@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { BookOpen, ChevronRight, FileText, KeyRound, Play, Radio } from "lucide-react";
+import { BookOpen, ChevronRight, KeyRound, Play, Radio } from "lucide-react";
 import { ClaudeCodeSetup } from "./claude-code-setup";
 
 type QuickActionsProps = {
@@ -10,12 +10,6 @@ type QuickActionsProps = {
 };
 
 const LINK_ACTIONS = [
-  {
-    title: "Import Transcript",
-    description: "Upload a JSON/JSONL agent transcript",
-    href: "/import",
-    icon: FileText,
-  },
   {
     title: "View Demo",
     description: "See a sample replay session in action",

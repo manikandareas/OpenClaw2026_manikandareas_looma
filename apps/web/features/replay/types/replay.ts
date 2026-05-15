@@ -2,9 +2,12 @@ export type ViewportMode = "terminal" | "editor" | "diff" | "test" | "browser";
 
 export type PlaybackSpeed = 0.5 | 1 | 1.5 | 2 | 4;
 
+export type PlaybackMode = "live" | "playing" | "paused" | "scrubbed";
+
 export type PlaybackState = {
   currentIndex: number;
   isPlaying: boolean;
+  playbackMode: PlaybackMode;
   speed: PlaybackSpeed;
   currentMode: ViewportMode;
   currentFile: string | null;
@@ -80,6 +83,18 @@ export type ReplaySession = {
   created_at: string;
 };
 
+export type ReplayFinalOutput = {
+  title: string;
+  content: string;
+  format: "text" | "markdown" | "json";
+  sourceEventId: string | null;
+  seq: number | null;
+  timestamp: string | null;
+  sensitivity: ReplayEvent["sensitivity"];
+  redactionApplied: boolean;
+  isExplicit: boolean;
+};
+
 export type ReplayData = {
   session: ReplaySession;
   events: ReplayEvent[];
@@ -87,6 +102,7 @@ export type ReplayData = {
   chapters: ReplayChapter[];
   behaviorSummary: BehaviorSummary;
   notes: string;
+  finalOutput: ReplayFinalOutput | null;
   redactionSummary: Record<string, unknown>;
 };
 

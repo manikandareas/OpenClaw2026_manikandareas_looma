@@ -18,11 +18,11 @@ export function SessionList() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         <SessionFilters onFilterChange={handleFilterChange} />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col mt-4 space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-[120px] rounded-lg" />
+            <Skeleton key={i} className="h-[88px] w-full rounded-xl border border-border/60 bg-muted/20" />
           ))}
         </div>
       </div>
@@ -32,12 +32,12 @@ export function SessionList() {
   const sessions = data?.sessions ?? [];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <SessionFilters onFilterChange={handleFilterChange} />
       {sessions.length === 0 ? (
         <SessionsEmptyState />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="flex flex-col mt-4 space-y-2">
           {sessions.map((session) => (
             <SessionCard key={session.id} session={session} />
           ))}

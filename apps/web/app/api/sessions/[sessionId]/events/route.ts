@@ -51,7 +51,7 @@ export async function POST(request: Request, context: RouteContext) {
       workspace_path: input.workspacePath,
       related_file: input.relatedFile,
       related_command: input.relatedCommand,
-      payload_json: input.payload,
+      payload_json: redactedPayload.value,
       redacted_payload_json: redactedPayload.value,
       display_text: input.displayText,
       sensitivity: input.sensitivity,

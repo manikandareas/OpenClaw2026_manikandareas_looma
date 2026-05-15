@@ -32,9 +32,16 @@ Sessions usually move through these states:
 
 ```json
 {
-  "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+  "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
+  "finalOutput": {
+    "title": "Final implementation summary",
+    "content": "Implemented JWT auth with refresh-token rotation and verified it with bun test.",
+    "format": "markdown"
+  }
 }
 ```
+
+`finalOutput` is optional, but recommended. When present, Looma records it as a first-class replay event so the session detail page can show the agent's final answer beside the replay context.
 
 ## Public replay route
 
@@ -48,4 +55,4 @@ Use this URL for handoff, review, and sharing. It is separate from internal API 
 
 ## Replay data
 
-Replay data includes the session record, normalized events, Needs Review markers, chapters, behavior summary, notes, and redaction summary.
+Replay data includes the session record, normalized events, Needs Review markers, chapters, behavior summary, notes, final output, and redaction summary.

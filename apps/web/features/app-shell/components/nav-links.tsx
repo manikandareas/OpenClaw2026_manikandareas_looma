@@ -9,7 +9,6 @@ import { useState } from "react";
 const links = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Sessions", href: "/sessions" },
-  { label: "Import", href: "/import" },
   { label: "Docs", href: "/docs" },
 ] as const;
 

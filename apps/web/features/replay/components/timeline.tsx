@@ -1,8 +1,40 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useMemo, useRef } from "react";
 import type { ReplayChapter, ReplayEvent, ReplayMarker, TimelineSegment } from "../types/replay";
 import { formatDuration, computeTotalDurationMs, computeElapsedMs } from "../utils/timing";
+
+function computeChapterCells(chapters: ReplayChapter[], events: ReplayEvent[]) {
+  if (chapters.length === 0 || events.length === 0) return [];
+
+  const sorted = [...chapters].sort((a, b) => a.start_seq - b.start_seq);
+  const cells: { id: string; title: string; flexWeight: number }[] = [];
+
+  for (let i = 0; i < sorted.length; i++) {
+    const chapter = sorted[i]!;
+    const startIdx = events.findIndex((e) => e.seq >= chapter.start_seq);
+    if (startIdx < 0) continue;
+
+    let endIdx: number;
+    if (chapter.end_seq != null) {
+      const endSeq = chapter.end_seq;
+      const afterEnd = events.findIndex((e) => e.seq > endSeq);
+      endIdx = afterEnd === -1 ? events.length - 1 : afterEnd - 1;
+    } else if (sorted[i + 1]) {
+      const nextStart = events.findIndex((e) => e.seq >= sorted[i + 1]!.start_seq);
+      endIdx =
+        nextStart === -1 ? events.length - 1 : Math.max(startIdx, nextStart - 1);
+    } else {
+      endIdx = events.length - 1;
+    }
+
+    endIdx = Math.min(Math.max(endIdx, startIdx), events.length - 1);
+    const flexWeight = endIdx - startIdx + 1;
+    cells.push({ id: chapter.id, title: chapter.title, flexWeight });
+  }
+
+  return cells;
+}
 
 type TimelineProps = {
   events: ReplayEvent[];
@@ -28,6 +60,8 @@ export function Timeline({
   onSeek,
 }: TimelineProps) {
   const trackRef = useRef<HTMLDivElement>(null);
+
+  const chapterCells = useMemo(() => computeChapterCells(chapters, events), [chapters, events]);
 
   const totalMs = computeTotalDurationMs(events, totalDurationMs);
   const elapsedMs = computeElapsedMs(events, currentIndex);
@@ -72,24 +106,28 @@ export function Timeline({
 
   return (
     <div className="space-y-1.5">
-      {/* Chapter labels */}
-      {chapters.length > 0 && (
-        <div className="relative hidden h-5 text-[10px] text-muted-foreground sm:block">
-          {chapters.map((chapter) => {
-            const startPercent =
-              events.length > 0
-                ? (events.findIndex((e) => e.seq >= chapter.start_seq) / events.length) * 100
-                : 0;
-            return (
-              <span
-                key={chapter.id}
-                className="absolute truncate"
-                style={{ left: `${startPercent}%`, maxWidth: "120px" }}
+      {/* Chapter strip: flex widths match event span so labels do not overlap */}
+      {chapterCells.length > 0 && (
+        <div
+          className="hidden w-full rounded-md border border-border/50 bg-muted/25 sm:block"
+          role="list"
+          aria-label="Session chapters"
+        >
+          <div className="flex min-h-9 divide-x divide-border/50">
+            {chapterCells.map((cell) => (
+              <div
+                key={cell.id}
+                role="listitem"
+                className="min-w-0 px-1.5 py-1.5 first:pl-2 last:pr-2"
+                style={{ flex: `${cell.flexWeight} 1 0%` }}
+                title={cell.title}
               >
-                {chapter.title}
-              </span>
-            );
-          })}
+                <p className="line-clamp-2 text-left text-[10px] leading-snug tracking-tight text-muted-foreground">
+                  {cell.title}
+                </p>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

@@ -10,7 +10,9 @@ type ReplayPageProps = {
   searchParams: Promise<{ embed?: string | string[] }>;
 };
 
-export async function generateMetadata({ params }: Pick<ReplayPageProps, "params">): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: Pick<ReplayPageProps, "params">): Promise<Metadata> {
   const { sessionId } = await params;
   const preview = await getReplayPreview(sessionId);
 
@@ -24,8 +26,12 @@ export async function generateMetadata({ params }: Pick<ReplayPageProps, "params
   const description = [
     `${preview.harness} session with ${preview.eventCount} events`,
     `${preview.markerCount} review markers`,
-    preview.firstReviewLabel ? `first review: ${preview.firstReviewLabel}` : null,
-  ].filter(Boolean).join(", ");
+    preview.firstReviewLabel
+      ? `first review: ${preview.firstReviewLabel}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
   const url = buildSessionUrl(sessionId);
 
   return {
@@ -48,7 +54,10 @@ export async function generateMetadata({ params }: Pick<ReplayPageProps, "params
   };
 }
 
-export default async function ReplayPage({ params, searchParams }: ReplayPageProps) {
+export default async function ReplayPage({
+  params,
+  searchParams,
+}: ReplayPageProps) {
   const [{ sessionId }, query] = await Promise.all([params, searchParams]);
 
   if (!sessionId) {
@@ -58,16 +67,34 @@ export default async function ReplayPage({ params, searchParams }: ReplayPagePro
   const embedded = asSingleValue(query.embed) === "1";
   const autoPlay = sessionId === "demo";
 
-  return (
-    <>
-      {embedded ? null : <AppNav />}
-      <main className={embedded ? "px-3 py-3" : "mx-auto max-w-7xl px-4 py-6"}>
-        <ReplayShell sessionId={sessionId} autoPlay={autoPlay} embedded={embedded} />
+  if (embedded) {
+    return (
+      <main className="px-3 py-3">
+        <ReplayShell
+          sessionId={sessionId}
+          autoPlay={autoPlay}
+          embedded
+        />
       </main>
-    </>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-background pb-12">
+      <AppNav />
+      <main className="py-8">
+        <ReplayShell
+          sessionId={sessionId}
+          autoPlay={autoPlay}
+          embedded={false}
+        />
+      </main>
+    </div>
   );
 }
 
-function asSingleValue(value: string | string[] | undefined): string | undefined {
+function asSingleValue(
+  value: string | string[] | undefined,
+): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }

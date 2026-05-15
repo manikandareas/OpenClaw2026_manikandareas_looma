@@ -90,14 +90,22 @@ server.registerTool(
     description:
       "Stop the active Looma recording, trigger replay processing, clear ~/.looma/active_session, and return the /session/{sessionId} replay URL.",
     inputSchema: {
-      sessionId: z.string().uuid().optional()
+      sessionId: z.string().uuid().optional(),
+      finalOutput: z.object({
+        title: z.string().min(1).max(160).optional(),
+        content: z.string().min(1).max(12000),
+        format: z.enum(["text", "markdown", "json"]).default("markdown"),
+        sensitivity: z.enum(["none", "low", "medium", "high"]).default("none")
+      }).optional()
     }
   },
   async (input) => {
     const client = new LoomaApiClient();
     const parsed = mcpRecordStopInputSchema.parse(input);
     const sessionId = await resolveSessionId(parsed.sessionId);
-    const result = await client.stopSession(sessionId);
+    const result = await client.stopSession(sessionId, {
+      finalOutput: parsed.finalOutput
+    });
     try {
       await clearActiveSession();
     } catch (err) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Play, Pause, SkipForward } from "lucide-react";
+import { Play, Pause, Radio, SkipForward } from "lucide-react";
 import type { PlaybackSpeed } from "../types/replay";
 
 const SPEEDS: PlaybackSpeed[] = [0.5, 1, 1.5, 2, 4];
@@ -13,9 +13,12 @@ type PlaybackControlsProps = {
   totalEvents: number;
   onPlay: () => void;
   onPause: () => void;
+  onGoLive: () => void;
   onSpeedChange: (speed: PlaybackSpeed) => void;
   onJumpToInteresting: () => void;
   hasReviewMarkers: boolean;
+  isLiveSession: boolean;
+  isFollowingLive: boolean;
 };
 
 export function PlaybackControls({
@@ -25,9 +28,12 @@ export function PlaybackControls({
   totalEvents,
   onPlay,
   onPause,
+  onGoLive,
   onSpeedChange,
   onJumpToInteresting,
   hasReviewMarkers,
+  isLiveSession,
+  isFollowingLive,
 }: PlaybackControlsProps) {
   const nextSpeed = () => {
     const currentIdx = SPEEDS.indexOf(speed);
@@ -63,6 +69,18 @@ export function PlaybackControls({
       </span>
 
       <div className="flex-1" />
+
+      {isLiveSession && (
+        <Button
+          variant={isFollowingLive ? "secondary" : "ghost"}
+          size="sm"
+          onClick={onGoLive}
+          className="h-8 gap-1.5 text-xs"
+        >
+          <Radio className="h-3.5 w-3.5" />
+          Live
+        </Button>
+      )}
 
       {/* Jump to Interesting */}
       {hasReviewMarkers && (
