@@ -2,7 +2,7 @@
 
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued";
 import type { PlaybackSpeed, ReplayEvent } from "../types/replay";
-import { getDisplayPayload, getDisplayString } from "../utils/display-payload";
+import { eventToFrame } from "../utils/replay-frame";
 
 type DiffRendererProps = {
   event: ReplayEvent | null;
@@ -48,23 +48,19 @@ const darkStyles = {
 export function DiffRenderer({ event }: DiffRendererProps) {
   if (!event) return null;
 
-  const payload = getDisplayPayload(event);
-
-  const oldValue =
-    getString(payload.before) ||
-    getString(payload.oldValue) ||
-    getDisplayString(event, "before");
-  const newValue =
-    getString(payload.after) ||
-    getString(payload.newValue) ||
-    getString(payload.diff) ||
-    getDisplayString(event, "after");
+  const frame = eventToFrame(event);
+  if (frame.mode !== "diff") return null;
 
   return (
     <div className="h-full overflow-auto">
+      {frame.previewUnavailable ? (
+        <div className="border-b border-border bg-[#0d1117] px-4 py-3 font-mono text-sm text-zinc-400">
+          preview unavailable
+        </div>
+      ) : null}
       <ReactDiffViewer
-        oldValue={oldValue}
-        newValue={newValue}
+        oldValue={frame.oldValue}
+        newValue={frame.newValue}
         splitView={true}
         useDarkTheme={true}
         compareMethod={DiffMethod.WORDS}
@@ -73,8 +69,4 @@ export function DiffRenderer({ event }: DiffRendererProps) {
       />
     </div>
   );
-}
-
-function getString(value: unknown): string {
-  return typeof value === "string" ? value : "";
 }

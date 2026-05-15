@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import type { PlaybackSpeed, ReplayEvent } from "../types/replay";
-import { getDisplayString } from "../utils/display-payload";
+import { eventToFrame } from "../utils/replay-frame";
 
 type TerminalRendererProps = {
   event: ReplayEvent | null;
@@ -13,13 +13,9 @@ export function TerminalRenderer({ event, speed }: TerminalRendererProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<import("@xterm/xterm").Terminal | null>(null);
   const fitAddonRef = useRef<import("@xterm/addon-fit").FitAddon | null>(null);
-  const animationRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const lastEventSeqRef = useRef<number>(-1);
-
-  const cancelAnimations = useCallback(() => {
-    animationRef.current.forEach(clearTimeout);
-    animationRef.current = [];
-  }, []);
+  const latestEventRef = useRef<ReplayEvent | null>(event);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -35,10 +31,14 @@ export function TerminalRenderer({ event, speed }: TerminalRendererProps) {
 
       const fitAddon = new FitAddon();
       const terminal = new Terminal({
-        cursorBlink: true,
+        convertEol: true,
+        cursorBlink: false,
+        cursorStyle: "bar",
+        disableStdin: true,
         fontSize: 13,
         fontFamily: "var(--font-mono), 'JetBrains Mono', 'Fira Code', monospace",
         lineHeight: 1.4,
+        scrollback: 10_000,
         theme: {
           background: "#08090d",
           foreground: "#f7f7f8",
@@ -67,22 +67,26 @@ export function TerminalRenderer({ event, speed }: TerminalRendererProps) {
       terminal.loadAddon(fitAddon);
       terminal.open(containerRef.current);
       fitAddon.fit();
+      resizeObserverRef.current = new ResizeObserver(() => fitAddon.fit());
+      resizeObserverRef.current.observe(containerRef.current);
 
       terminalRef.current = terminal;
       fitAddonRef.current = fitAddon;
 
-      terminal.writeln("\x1b[32m$\x1b[0m Waiting for events...");
+      renderFrame(terminal, latestEventRef.current);
+      lastEventSeqRef.current = latestEventRef.current?.seq ?? -1;
     }
 
     init();
 
     return () => {
       mounted = false;
-      cancelAnimations();
+      resizeObserverRef.current?.disconnect();
+      resizeObserverRef.current = null;
       terminalRef.current?.dispose();
       terminalRef.current = null;
     };
-  }, [cancelAnimations]);
+  }, []);
 
   useEffect(() => {
     const handleResize = () => fitAddonRef.current?.fit();
@@ -91,25 +95,13 @@ export function TerminalRenderer({ event, speed }: TerminalRendererProps) {
   }, []);
 
   useEffect(() => {
+    latestEventRef.current = event;
     if (!event || !terminalRef.current) return;
     if (event.seq === lastEventSeqRef.current) return;
     lastEventSeqRef.current = event.seq;
 
-    cancelAnimations();
-    const terminal = terminalRef.current;
-
-    if (event.type === "terminal_command") {
-      const command = getDisplayString(event, "command", event.related_command ?? event.display_text);
-
-      typeCommand(terminal, command, speed, animationRef.current);
-    } else if (event.type === "terminal_output") {
-      const output =
-        getDisplayString(event, "output") ||
-        getDisplayString(event, "outputPreview", event.display_text);
-
-      streamOutput(terminal, output, speed, animationRef.current);
-    }
-  }, [event, speed, cancelAnimations]);
+    renderFrame(terminalRef.current, event, speed);
+  }, [event, speed]);
 
   return (
     <div
@@ -120,41 +112,42 @@ export function TerminalRenderer({ event, speed }: TerminalRendererProps) {
   );
 }
 
-function typeCommand(
+function renderFrame(
   terminal: import("@xterm/xterm").Terminal,
-  command: string,
-  speed: number,
-  timers: ReturnType<typeof setTimeout>[]
+  event: ReplayEvent | null,
+  speed: number = 1
 ) {
-  terminal.write("\r\n\x1b[32m$ \x1b[0m");
-  const charDelay = 30 / speed;
+  const frame = eventToFrame(event);
+  if (frame.mode !== "terminal") return;
 
-  for (let i = 0; i < command.length; i++) {
-    const timer = setTimeout(() => {
-      terminal.write(command[i]);
-    }, i * charDelay);
-    timers.push(timer);
+  terminal.clear();
+  terminal.reset();
+  terminal.write("\x1b[2J\x1b[H");
+
+  if (frame.command) {
+    terminal.writeln(`${frame.failed ? "\x1b[31m" : "\x1b[32m"}$ \x1b[0m${frame.command}`);
   }
 
-  const finalTimer = setTimeout(() => {
-    terminal.write("\r\n");
-  }, command.length * charDelay + 50);
-  timers.push(finalTimer);
+  if (frame.statusText) {
+    terminal.writeln(`${frame.failed ? "\x1b[31m" : "\x1b[90m"}${frame.statusText}\x1b[0m`);
+  }
+
+  if (!frame.output) return;
+
+  const chunks = chunkLines(frame.output, speed >= 4 ? 120 : 80);
+  terminal.write(chunks[0] ?? "");
+
+  for (const chunk of chunks.slice(1)) {
+    terminal.write(chunk);
+  }
 }
 
-function streamOutput(
-  terminal: import("@xterm/xterm").Terminal,
-  output: string,
-  speed: number,
-  timers: ReturnType<typeof setTimeout>[]
-) {
-  const lines = output.split("\n");
-  const lineDelay = 50 / speed;
+function chunkLines(value: string, maxLines: number): string[] {
+  const lines = value.split("\n");
+  if (lines.length <= maxLines) return [value];
 
-  for (let i = 0; i < lines.length; i++) {
-    const timer = setTimeout(() => {
-      terminal.writeln(lines[i]);
-    }, i * lineDelay);
-    timers.push(timer);
-  }
+  return [
+    lines.slice(0, maxLines).join("\n"),
+    `\n\x1b[90m... ${lines.length - maxLines} more preview lines truncated in viewport\x1b[0m`
+  ];
 }

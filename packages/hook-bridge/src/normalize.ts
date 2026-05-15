@@ -1,6 +1,10 @@
-import type { NormalizedEventInput } from "@looma/shared";
+import { redactString, type NormalizedEventInput } from "@looma/shared";
 
 type PartialEvent = Omit<NormalizedEventInput, "actor"> & { actor?: string };
+
+const TEXT_PREVIEW_LIMIT = 4_000;
+const PATCH_PREVIEW_LIMIT = 6_000;
+const COMMAND_PREVIEW_LIMIT = 1_200;
 
 export type ClaudeHookInput = {
   session_id?: string;
@@ -87,25 +91,34 @@ function normalizeToolCall({
 
   if (normalized === "bash") {
     const command = String(toolInput.command ?? "");
+    const commandPreview = previewText(command, COMMAND_PREVIEW_LIMIT).text ?? "";
+    const responsePreview = previewToolResponse(toolResponse);
     return {
       type: failed ? "terminal_command_failed" : "terminal_command",
       category: "execution",
       source: toolName,
       workspacePath,
-      relatedCommand: truncate(command, 1200),
+      relatedCommand: commandPreview,
       payload: {
         ...basePayload,
-        command,
+        command: commandPreview,
         description: stringOrUndefined(toolInput.description),
-        outputPreview: previewToolResponse(toolResponse)
+        outputPreview: responsePreview.text,
+        stdoutPreview: responsePreview.stdout,
+        stderrPreview: responsePreview.stderr,
+        outputTruncated: responsePreview.truncated,
+        exitCode: numberOrUndefinedFromRecord(toolResponse, "exitCode"),
+        status: stringOrUndefinedFromRecord(toolResponse, "status")
       },
-      displayText: failed ? `Failed: ${truncate(command, 110)}` : `$ ${truncate(command, 120)}`,
+      displayText: failed ? `Failed: ${truncate(commandPreview, 110)}` : `$ ${truncate(commandPreview, 120)}`,
       sensitivity: "none"
     };
   }
 
   if (normalized === "read") {
     const filePath = extractFilePath(toolInput);
+    const responsePreview = previewToolResponse(toolResponse);
+    const offset = numberOrUndefined(toolInput.offset);
     return {
       type: failed ? "file_read_failed" : "file_read",
       category: failed ? "review" : "workspace",
@@ -116,7 +129,11 @@ function normalizeToolCall({
         ...basePayload,
         path: filePath,
         limit: numberOrUndefined(toolInput.limit),
-        offset: numberOrUndefined(toolInput.offset)
+        offset,
+        line: offset ? offset + 1 : undefined,
+        contentPreview: responsePreview.text,
+        contentLineCount: responsePreview.text ? responsePreview.text.split("\n").length : undefined,
+        contentTruncated: responsePreview.truncated
       },
       displayText: failed ? `Failed reading ${basename(filePath)}` : `Read ${basename(filePath)}`,
       sensitivity: "none"
@@ -125,6 +142,8 @@ function normalizeToolCall({
 
   if (normalized === "write") {
     const filePath = extractFilePath(toolInput);
+    const contentPreview = previewText(stringOrUndefined(toolInput.content), TEXT_PREVIEW_LIMIT);
+    const responsePreview = previewToolResponse(toolResponse);
     return {
       type: failed ? "file_write_failed" : "file_write",
       category: failed ? "review" : "workspace",
@@ -135,7 +154,9 @@ function normalizeToolCall({
         ...basePayload,
         path: filePath,
         contentLength: typeof toolInput.content === "string" ? toolInput.content.length : undefined,
-        outputPreview: previewToolResponse(toolResponse)
+        contentPreview: contentPreview.text,
+        contentTruncated: contentPreview.truncated,
+        outputPreview: responsePreview.text
       },
       displayText: failed ? `Failed writing ${basename(filePath)}` : `Wrote ${basename(filePath)}`,
       sensitivity: "low"
@@ -144,8 +165,10 @@ function normalizeToolCall({
 
   if (normalized === "edit" || normalized === "multiedit" || normalized === "notebookedit") {
     const filePath = extractFilePath(toolInput);
+    const editPreview = previewEdit(toolInput);
+    const responsePreview = previewToolResponse(toolResponse);
     return {
-      type: failed ? "file_edit_failed" : "file_write",
+      type: failed ? "file_edit_failed" : "file_diff",
       category: failed ? "review" : "workspace",
       source: toolName,
       workspacePath,
@@ -157,7 +180,11 @@ function normalizeToolCall({
         replacementLength:
           typeof toolInput.new_string === "string" ? toolInput.new_string.length : undefined,
         editCount: Array.isArray(toolInput.edits) ? toolInput.edits.length : undefined,
-        outputPreview: previewToolResponse(toolResponse)
+        oldStringPreview: editPreview.oldString,
+        newStringPreview: editPreview.newString,
+        patchPreview: editPreview.patch,
+        patchTruncated: editPreview.truncated,
+        outputPreview: responsePreview.text
       },
       displayText: failed ? `Failed editing ${basename(filePath)}` : `Edited ${basename(filePath)}`,
       sensitivity: "low"
@@ -167,6 +194,7 @@ function normalizeToolCall({
   if (normalized === "glob" || normalized === "grep") {
     const pattern = String(toolInput.pattern ?? "");
     const path = stringOrUndefined(toolInput.path);
+    const responsePreview = previewToolResponse(toolResponse);
     return {
       type: failed ? "search_failed" : "file_search",
       category: failed ? "review" : "workspace",
@@ -178,7 +206,8 @@ function normalizeToolCall({
         pattern,
         path,
         glob: stringOrUndefined(toolInput.glob),
-        outputPreview: previewToolResponse(toolResponse)
+        resultPreview: responsePreview.text,
+        resultTruncated: responsePreview.truncated
       },
       displayText: failed ? `Failed search: ${truncate(pattern, 90)}` : `Search: ${truncate(pattern, 100)}`,
       sensitivity: "none"
@@ -187,6 +216,7 @@ function normalizeToolCall({
 
   if (normalized === "ls") {
     const path = extractFilePath(toolInput);
+    const responsePreview = previewToolResponse(toolResponse);
     return {
       type: failed ? "list_files_failed" : "file_search",
       category: failed ? "review" : "workspace",
@@ -196,7 +226,8 @@ function normalizeToolCall({
       payload: {
         ...basePayload,
         path,
-        outputPreview: previewToolResponse(toolResponse)
+        resultPreview: responsePreview.text,
+        resultTruncated: responsePreview.truncated
       },
       displayText: failed ? `Failed listing ${basename(path)}` : `Listed ${basename(path)}`,
       sensitivity: "none"
@@ -212,7 +243,7 @@ function normalizeToolCall({
       ...basePayload,
       tool: toolName,
       inputKeys: Object.keys(toolInput).slice(0, 10),
-      outputPreview: previewToolResponse(toolResponse)
+      outputPreview: previewToolResponse(toolResponse).text
     },
     displayText: failed ? `Failed ${toolName}` : `Called ${toolName}`,
     sensitivity: "none"
@@ -227,25 +258,49 @@ function extractFilePath(input: Record<string, unknown>): string {
   return String(input.file_path ?? input.filePath ?? input.path ?? input.notebook_path ?? "");
 }
 
-function previewToolResponse(value: unknown): string | undefined {
-  if (value == null) return undefined;
+function previewToolResponse(value: unknown): {
+  text: string | undefined;
+  stdout: string | undefined;
+  stderr: string | undefined;
+  truncated: boolean;
+} {
+  if (value == null) {
+    return { text: undefined, stdout: undefined, stderr: undefined, truncated: false };
+  }
 
   if (typeof value === "string") {
-    return truncate(value, 1200);
+    const preview = previewText(value, TEXT_PREVIEW_LIMIT);
+    return { text: preview.text, stdout: undefined, stderr: undefined, truncated: preview.truncated };
   }
 
   if (Array.isArray(value)) {
-    return truncate(JSON.stringify(value.slice(0, 3)), 1200);
+    const preview = previewText(JSON.stringify(value.slice(0, 20), null, 2), TEXT_PREVIEW_LIMIT);
+    return { text: preview.text, stdout: undefined, stderr: undefined, truncated: preview.truncated || value.length > 20 };
   }
 
   if (isRecord(value)) {
     const stdout = stringOrUndefined(value.stdout);
     const stderr = stringOrUndefined(value.stderr);
-    const text = stringOrUndefined(value.text) ?? stringOrUndefined(value.output);
-    return truncate([stdout, stderr, text].filter(Boolean).join("\n"), 1200) || undefined;
+    const text =
+      stringOrUndefined(value.text) ??
+      stringOrUndefined(value.output) ??
+      stringOrUndefined(value.content) ??
+      stringOrUndefined(value.result);
+    const joined = [stdout, stderr, text].filter(Boolean).join("\n");
+    const preview = previewText(joined || JSON.stringify(value, null, 2), TEXT_PREVIEW_LIMIT);
+    const stdoutPreview = previewText(stdout, TEXT_PREVIEW_LIMIT).text;
+    const stderrPreview = previewText(stderr, TEXT_PREVIEW_LIMIT).text;
+
+    return {
+      text: preview.text,
+      stdout: stdoutPreview,
+      stderr: stderrPreview,
+      truncated: preview.truncated
+    };
   }
 
-  return truncate(String(value), 1200);
+  const preview = previewText(String(value), TEXT_PREVIEW_LIMIT);
+  return { text: preview.text, stdout: undefined, stderr: undefined, truncated: preview.truncated };
 }
 
 function stringOrUndefined(value: unknown): string | undefined {
@@ -254,6 +309,64 @@ function stringOrUndefined(value: unknown): string | undefined {
 
 function numberOrUndefined(value: unknown): number | undefined {
   return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function numberOrUndefinedFromRecord(value: unknown, key: string): number | undefined {
+  return isRecord(value) ? numberOrUndefined(value[key]) : undefined;
+}
+
+function stringOrUndefinedFromRecord(value: unknown, key: string): string | undefined {
+  return isRecord(value) ? stringOrUndefined(value[key]) : undefined;
+}
+
+function previewText(value: string | undefined, max: number): { text: string | undefined; truncated: boolean } {
+  if (!value) return { text: undefined, truncated: false };
+  const redacted = redactString(value).value;
+  return {
+    text: truncate(redacted, max),
+    truncated: redacted.length > max
+  };
+}
+
+function previewEdit(input: Record<string, unknown>): {
+  oldString: string | undefined;
+  newString: string | undefined;
+  patch: string | undefined;
+  truncated: boolean;
+} {
+  if (Array.isArray(input.edits)) {
+    const chunks = input.edits
+      .slice(0, 12)
+      .filter(isRecord)
+      .map((edit, index) => {
+        const oldString = stringOrUndefined(edit.old_string) ?? "";
+        const newString = stringOrUndefined(edit.new_string) ?? "";
+        return [`# edit ${index + 1}`, "--- before", oldString, "+++ after", newString].join("\n");
+      });
+    const preview = previewText(chunks.join("\n\n"), PATCH_PREVIEW_LIMIT);
+    return {
+      oldString: undefined,
+      newString: undefined,
+      patch: preview.text,
+      truncated: preview.truncated || input.edits.length > 12
+    };
+  }
+
+  const oldPreview = previewText(stringOrUndefined(input.old_string), TEXT_PREVIEW_LIMIT);
+  const newPreview = previewText(stringOrUndefined(input.new_string), TEXT_PREVIEW_LIMIT);
+  const patch = previewText(
+    [oldPreview.text ? "--- before\n" + oldPreview.text : "", newPreview.text ? "+++ after\n" + newPreview.text : ""]
+      .filter(Boolean)
+      .join("\n"),
+    PATCH_PREVIEW_LIMIT
+  );
+
+  return {
+    oldString: oldPreview.text,
+    newString: newPreview.text,
+    patch: patch.text,
+    truncated: oldPreview.truncated || newPreview.truncated || patch.truncated
+  };
 }
 
 function truncate(str: string, max: number): string {
