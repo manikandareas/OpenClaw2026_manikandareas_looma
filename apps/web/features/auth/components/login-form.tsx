@@ -93,24 +93,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     }
   };
 
-  const handleOAuthLogin = async (provider: "google" | "apple") => {
-    const supabase = createClient();
-    setIsLoading(true);
-
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: `${window.location.origin}/auth/confirm`,
-        },
-      });
-      if (error) throw error;
-    } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Authentication provider unavailable");
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className={cn("w-full", className)} {...props}>
       <AuthBrand />
@@ -122,8 +104,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
           <Button
             type="button"
             variant="outline"
-            onClick={() => handleOAuthLogin("google")}
-            disabled={isLoading}
+            disabled
             className={oauthButtonClassName}
           >
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 sm:left-4">
@@ -134,8 +115,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
           <Button
             type="button"
             variant="outline"
-            onClick={() => handleOAuthLogin("apple")}
-            disabled={isLoading}
+            disabled
             className={oauthButtonClassName}
           >
             <span className="absolute left-3.5 top-1/2 -translate-y-1/2 sm:left-4">
@@ -146,8 +126,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
           <Button
             type="button"
             variant="outline"
-            onClick={() => toast.message("SSO is not configured for this workspace.")}
-            disabled={isLoading}
+            disabled
             className={authOutlineButtonClassName}
           >
             Sign in with SSO
