@@ -1,19 +1,18 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
   ArrowRight,
   CheckCircle2,
-  CircleDot,
   Clock3,
-  FileText,
   Flag,
   GitBranch,
-  ListChecks,
   Sparkles,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { LandingDemoSessionPreview } from "@/features/marketing/components/landing-demo-session-preview";
+import { cn } from "@/lib/utils";
 
 const integrations = [
   { name: "Claude Code", logo: "/integrations/claude-code.svg" },
@@ -26,48 +25,6 @@ const integrations = [
   { name: "LangGraph", logo: "/integrations/langgraph.svg" },
   { name: "Pydantic AI", logo: "/integrations/pydantic-ai.svg" },
 ] as const;
-
-const featureCards = [
-  {
-    icon: Clock3,
-    title: "Timeline",
-    body: "Every command, file read, edit, and checkpoint sits on one scrubber.",
-  },
-  {
-    icon: Flag,
-    title: "Needs Review",
-    body: "Risk markers surface the exact moments a human should inspect.",
-  },
-  {
-    icon: ListChecks,
-    title: "Chapters",
-    body: "Long agent runs become digestible phases instead of raw logs.",
-  },
-  {
-    icon: FileText,
-    title: "AI session notes",
-    body: "Share what changed, why it changed, and what still needs attention.",
-  },
-];
-
-const workflow = [
-  {
-    title: "record_start",
-    body: "The agent session opens with a durable capture id.",
-  },
-  {
-    title: "capture hooks",
-    body: "Commands, edits, tests, and tool events stream into Looma.",
-  },
-  {
-    title: "record_stop",
-    body: "The run closes with status, timing, and review metadata.",
-  },
-  {
-    title: "replay artifact",
-    body: "A shareable replay is ready for async review.",
-  },
-];
 
 const demoFeatureTiles = [
   {
@@ -104,10 +61,16 @@ export function LandingPage() {
             <Link className="transition-colors hover:text-black" href="#demo">
               Demo
             </Link>
-            <Link className="transition-colors hover:text-black" href="#features">
+            <Link
+              className="transition-colors hover:text-black"
+              href="#features"
+            >
               Features
             </Link>
-            <Link className="transition-colors hover:text-black" href="#workflow">
+            <Link
+              className="transition-colors hover:text-black"
+              href="#workflow"
+            >
               How it works
             </Link>
           </nav>
@@ -160,9 +123,9 @@ export function LandingPage() {
               </div>
               <div className="min-w-0">
                 <p className="text-pretty text-lg leading-snug text-[#44403C] sm:text-xl sm:leading-snug lg:max-w-[26rem]">
-                  Agent sessions become one shareable replay of terminal output, diffs, and
-                  tests, with flags for anything that needs a human. Async review without raw
-                  logs.
+                  Agent sessions become one shareable replay of terminal output,
+                  diffs, and tests, with flags for anything that needs a human.
+                  Async review without raw logs.
                 </p>
               </div>
             </div>
@@ -198,9 +161,9 @@ export function LandingPage() {
             </div>
             <div className="min-w-0">
               <p className="text-pretty text-lg leading-snug text-[#44403C] sm:text-xl sm:leading-snug lg:max-w-[26rem]">
-                Watch the terminal, diffs, tests, chapters, and review markers from an
-                autonomous coding-agent run in one shareable artifact. Replace raw
-                transcripts with a workspace people can inspect.
+                Watch the terminal, diffs, tests, chapters, and review markers
+                from an autonomous coding-agent run in one shareable artifact.
+                Replace raw transcripts with a workspace people can inspect.
               </p>
             </div>
           </div>
@@ -208,62 +171,15 @@ export function LandingPage() {
         </div>
       </section>
 
-      <section id="features" className="w-full">
-        <div className="mx-auto grid w-full max-w-7xl gap-3 px-4 pb-24 pt-16 sm:grid-cols-2 sm:px-6 sm:pb-28 sm:pt-20 lg:grid-cols-4 lg:px-8 lg:pb-32 lg:pt-24">
-          {featureCards.map((feature) => {
-            const Icon = feature.icon;
-
-            return (
-              <article
-                key={feature.title}
-                className="rounded-lg border border-black/[0.06] bg-white p-5"
-              >
-                <div className="mb-8 flex h-9 w-9 items-center justify-center rounded-md bg-[#F5F3F1] text-black">
-                  <Icon className="h-4 w-4" />
-                </div>
-                <h3 className="text-base font-semibold text-black">{feature.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-[#57534E]">{feature.body}</p>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-
-      <section id="workflow" className="w-full border-y border-black/[0.06] bg-white py-20 sm:py-24 lg:py-28">
-        <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-9 max-w-2xl">
-            <p className="text-sm font-medium text-[#0A59D2]">How it works</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-normal text-black sm:text-4xl">
-              From agent runtime to review artifact.
-            </h2>
-          </div>
-          <div className="grid gap-3 md:grid-cols-4">
-            {workflow.map((step, index) => (
-              <article
-                key={step.title}
-                className="rounded-lg border border-black/[0.06] bg-[#FDFCFC] p-5"
-              >
-                <div className="mb-8 flex items-center justify-between">
-                  <span className="text-xs font-medium text-[#57534E]">
-                    Step {index + 1}
-                  </span>
-                  <CircleDot className="h-4 w-4 text-[#0447FF]" />
-                </div>
-                <h3 className="font-mono text-sm font-semibold text-black">
-                  {step.title}
-                </h3>
-                <p className="mt-3 text-sm leading-6 text-[#57534E]">{step.body}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+      <WorkflowSection />
 
       <section className="w-full">
         <div className="mx-auto w-full max-w-7xl px-4 py-20 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
           <div className="grid gap-8 rounded-lg border border-black/[0.06] bg-[#F5F3F1] p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
             <div>
-              <p className="text-sm font-medium text-[#57534E]">Built for async review</p>
+              <p className="text-sm font-medium text-[#57534E]">
+                Built for async review
+              </p>
               <h2 className="mt-2 max-w-2xl text-3xl font-semibold tracking-normal text-black sm:text-4xl">
                 Replace giant terminal transcripts with replay links people can
                 actually review.
@@ -302,6 +218,320 @@ export function LandingPage() {
   );
 }
 
+const TECHNICAL_FRAME_LINE_OUT = 48;
+const TECHNICAL_FRAME_LINE_COLOR = "bg-[#E8E8E6]";
+
+/** Garis horizontal di dalam frame: selebar konten + overflow kiri/kanan; titik di persimpangan dengan garis vertikal frame. */
+function TechnicalFrameHorizontalRule() {
+  const o = TECHNICAL_FRAME_LINE_OUT;
+
+  return (
+    <div
+      className="relative shrink-0"
+      style={{
+        width: `calc(100% + ${o * 2}px)`,
+        marginLeft: -o,
+        marginRight: -o,
+      }}
+    >
+      <div
+        aria-hidden
+        className={cn("h-px w-full", TECHNICAL_FRAME_LINE_COLOR)}
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute top-1/2 z-[1] size-[3px] -translate-x-1/2 -translate-y-1/2 bg-black"
+        style={{ left: o }}
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute top-1/2 z-[1] size-[3px] translate-x-1/2 -translate-y-1/2 bg-black"
+        style={{ right: o }}
+      />
+    </div>
+  );
+}
+
+function TechnicalCrosshairFrame({
+  children,
+  contentClassName,
+}: {
+  children: ReactNode;
+  contentClassName?: string;
+}) {
+  const lineOut = TECHNICAL_FRAME_LINE_OUT;
+  const lineColor = TECHNICAL_FRAME_LINE_COLOR;
+  const hLineInset = { left: -lineOut, right: -lineOut };
+  const vLineInset = { top: -lineOut, bottom: -lineOut };
+
+  return (
+    <div className="relative isolate w-full py-10 sm:py-12 lg:py-14">
+      <span
+        aria-hidden
+        className={`pointer-events-none absolute top-0 z-0 h-px ${lineColor}`}
+        style={hLineInset}
+      />
+      <span
+        aria-hidden
+        className={`pointer-events-none absolute bottom-0 z-0 h-px ${lineColor}`}
+        style={hLineInset}
+      />
+      <span
+        aria-hidden
+        className={`pointer-events-none absolute left-0 z-0 w-px ${lineColor}`}
+        style={vLineInset}
+      />
+      <span
+        aria-hidden
+        className={`pointer-events-none absolute right-0 z-0 w-px ${lineColor}`}
+        style={vLineInset}
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute left-0 top-0 z-0 size-[3px] -translate-x-1/2 -translate-y-1/2 bg-black"
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute right-0 top-0 z-0 size-[3px] translate-x-1/2 -translate-y-1/2 bg-black"
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute bottom-0 left-0 z-0 size-[3px] -translate-x-1/2 translate-y-1/2 bg-black"
+      />
+      <span
+        aria-hidden
+        className="pointer-events-none absolute bottom-0 right-0 z-0 size-[3px] translate-x-1/2 translate-y-1/2 bg-black"
+      />
+      <div className={cn("relative z-10", contentClassName)}>{children}</div>
+    </div>
+  );
+}
+
+function WorkflowSection() {
+  return (
+    <section
+      id="workflow"
+      className="w-full scroll-mt-[72px] bg-[#FDFCFC] py-12 sm:py-16 lg:py-20"
+    >
+      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-end sm:justify-between sm:gap-4 sm:py-5">
+          <div className="min-w-0 max-w-2xl lg:max-w-[min(100%,40rem)]">
+            <p className="text-[15px] leading-snug text-[#57534E] sm:text-base">
+              How it works
+            </p>
+            <h2 className="font-display mt-3 max-w-[min(100%,34rem)] text-[2.75rem] font-normal leading-[1.08] tracking-[-0.02em] text-black sm:mt-4 sm:text-5xl sm:leading-[1.06] lg:text-[3.25rem] lg:leading-[1.05] xl:text-[3.5rem]">
+              Build replay review into any agent runtime
+            </h2>
+          </div>
+          <Button
+            asChild
+            variant="outline"
+            className="h-10 w-fit shrink-0 rounded-full border-[#E0DFDD] bg-white px-5 text-sm text-black shadow-[0_2px_10px_rgb(0_0_0/0.05)] hover:bg-[#F5F3F1] sm:h-11 sm:px-6 sm:text-base"
+          >
+            <Link href="/import">Explore docs</Link>
+          </Button>
+        </div>
+
+        <div className="relative -mx-4 mt-10 w-[calc(100%+2rem)] overflow-visible sm:-mx-6 sm:mt-12 sm:w-[calc(100%+3rem)] lg:-mx-8 lg:mt-14 lg:w-[calc(100%+4rem)]">
+          <TechnicalCrosshairFrame contentClassName="">
+            <>
+              <div className="px-4 sm:px-6 lg:px-8">
+                <div className="grid gap-10 pb-10 pt-8 sm:pb-12 sm:pt-10 lg:grid-cols-2 lg:items-start lg:gap-x-14 lg:gap-y-0 lg:pb-14 lg:pt-12 xl:gap-x-20">
+                  <WorkflowCopyBlock
+                    title="Session Capture API"
+                    body="Create a durable capture id before the agent starts. Looma keeps the session owner, branch, commit, and runtime metadata connected to the replay."
+                    items={[
+                      ["record_start", "Open a session with context"],
+                      ["record_event", "Stream commands and edits"],
+                      ["record_stop", "Close with status and timing"],
+                    ]}
+                  />
+                  <CodePanel
+                    lines={[
+                      <>
+                        <span className="text-[#F05252]">import</span>{" "}
+                        {"{ createLoomaClient }"}{" "}
+                        <span className="text-[#F05252]">from</span>{" "}
+                        <span className="text-[#315BA8]">&quot;@looma/sdk&quot;</span>;
+                      </>,
+                      <>
+                        <span className="text-[#F05252]">const</span>{" "}
+                        <span className="text-[#315BA8]">client</span> ={" "}
+                        <span className="text-[#F05252]">createLoomaClient</span>(
+                        {"{"}
+                        apiKey:{" "}
+                        <span className="text-[#315BA8]">
+                          &quot;LOOMA_API_KEY&quot;
+                        </span>{" "}
+                        {"}"});
+                      </>,
+                      <>
+                        <span className="text-[#F05252]">const</span>{" "}
+                        <span className="text-[#315BA8]">session</span> ={" "}
+                        <span className="text-[#F05252]">await</span>{" "}
+                        client.recordStart({"{"}
+                      </>,
+                      <>
+                        {"  "}title:{" "}
+                        <span className="text-[#315BA8]">
+                          &quot;Fix auth fallback&quot;
+                        </span>
+                        ,
+                      </>,
+                      <>
+                        {"  "}branch:{" "}
+                        <span className="text-[#315BA8]">
+                          &quot;feat/session-refresh&quot;
+                        </span>
+                        ,
+                      </>,
+                      <>{"}"});</>,
+                    ]}
+                  />
+                </div>
+              </div>
+
+              <TechnicalFrameHorizontalRule />
+
+              <div className="px-4 sm:px-6 lg:px-8">
+                <div className="grid gap-10 py-10 sm:py-12 lg:grid-cols-2 lg:items-start lg:gap-x-14 lg:gap-y-0 lg:py-14 xl:gap-x-20">
+                  <WorkflowCopyBlock
+                    title="Event Stream API"
+                    body="Send terminal output, file reads, diffs, test results, and human checkpoints as structured events. The replay stays inspectable instead of becoming a raw transcript."
+                    items={[
+                      ["Terminal events", "Commands and verification"],
+                      ["Editor events", "Files, hunks, and diffs"],
+                      ["Review markers", "Risk moments for humans"],
+                    ]}
+                  />
+                  <WorkflowDiagram />
+                </div>
+              </div>
+
+              <TechnicalFrameHorizontalRule />
+
+              <div className="px-4 sm:px-6 lg:px-8">
+                <div className="grid gap-10 pb-8 pt-10 sm:pb-10 sm:pt-12 lg:grid-cols-2 lg:items-start lg:gap-x-14 lg:gap-y-0 lg:pb-12 lg:pt-14 xl:gap-x-20">
+                  <WorkflowCopyBlock
+                    title="Replay Artifact API"
+                    body="Publish one review link with chapters, behavior summary, and the exact evidence a teammate needs before merge."
+                    items={[
+                      ["Public session", "A canonical /session link"],
+                      ["AI notes", "Summary and remaining risk"],
+                      ["Review state", "Share, inspect, approve"],
+                    ]}
+                  />
+                  <CodePanel
+                    lines={[
+                      <>
+                        <span className="text-[#F05252]">await</span>{" "}
+                        client.recordStop(session.id, {"{"}
+                      </>,
+                      <>
+                        {"  "}status:{" "}
+                        <span className="text-[#315BA8]">&quot;passed&quot;</span>,
+                      </>,
+                      <>
+                        {"  "}summary:{" "}
+                        <span className="text-[#315BA8]">
+                          &quot;Auth fallback fixed and verified&quot;
+                        </span>
+                        ,
+                      </>,
+                      <>
+                        {"  "}markers: [
+                        <span className="text-[#315BA8]">
+                          &quot;needs_review&quot;
+                        </span>
+                        ],
+                      </>,
+                      <>{"}"});</>,
+                      <>
+                        <span className="text-[#F05252]">const</span> replay ={" "}
+                        <span className="text-[#F05252]">await</span>{" "}
+                        client.publishReplay(session.id);
+                      </>,
+                    ]}
+                  />
+                </div>
+              </div>
+            </>
+          </TechnicalCrosshairFrame>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function WorkflowCopyBlock({
+  title,
+  body,
+  items,
+}: {
+  title: string;
+  body: string;
+  items: [string, string][];
+}) {
+  return (
+    <article className="min-w-0">
+      <h3 className="font-display text-xl font-normal leading-tight tracking-[-0.02em] text-black sm:text-2xl">
+        {title}
+      </h3>
+      <p className="mt-3 max-w-[31rem] text-pretty text-base leading-snug text-[#44403C] sm:mt-4 sm:text-lg sm:leading-snug">
+        {body}
+      </p>
+      <div className="mt-8 grid gap-x-8 gap-y-6 sm:mt-10 sm:grid-cols-2">
+        {items.map(([label, description]) => (
+          <div key={label}>
+            <p className="text-sm font-medium leading-snug text-[#1C1917] sm:text-[15px]">
+              {label}
+            </p>
+            <p className="mt-1 text-sm leading-snug text-[#57534E] sm:text-[15px] sm:leading-snug">
+              {description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </article>
+  );
+}
+
+function CodePanel({ lines }: { lines: ReactNode[] }) {
+  return (
+    <div className="min-w-0">
+      <div className="min-h-[16rem] rounded-2xl border border-[#E0DFDD] bg-white p-6 shadow-[0_2px_12px_rgb(0_0_0/0.05)] sm:min-h-[18rem] sm:p-8">
+        <pre className="overflow-x-auto font-mono text-[13px] leading-[1.85] text-[#292524] sm:text-sm sm:leading-[1.9]">
+          <code>
+            {lines.map((line, index) => (
+              <span key={index} className="block">
+                {line}
+              </span>
+            ))}
+          </code>
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+function WorkflowDiagram() {
+  return (
+    <div className="relative min-h-[17rem] overflow-hidden rounded-2xl border border-[#E0DFDD] bg-[#F5F3F1] sm:min-h-[19.75rem]">
+      <div className="absolute inset-0 bg-[linear-gradient(32deg,transparent_49.75%,#E7E3DE_50%,transparent_50.25%),linear-gradient(148deg,transparent_49.75%,#E7E3DE_50%,transparent_50.25%)]" />
+      <div className="absolute left-1/2 top-1/2 h-16 w-[32rem] -translate-x-1/2 -translate-y-1/2 -rotate-[31deg] rounded-full border border-[#E7E3DE] bg-white shadow-[0_1px_10px_rgb(0_0_0/0.04)]" />
+      <div className="absolute left-1/2 top-1/2 h-9 w-[20rem] -translate-x-1/2 -translate-y-[42%] -rotate-[31deg] rounded-full bg-[#F0EFED] text-center text-[0.8rem] font-medium leading-9 text-[#A49E98]">
+        raw transcript
+      </div>
+      <div className="absolute left-1/2 top-1/2 h-9 w-[21rem] -translate-x-[42%] translate-y-[28%] -rotate-[31deg] rounded-full bg-[#F0EFED] text-center text-[0.8rem] font-medium leading-9 text-[#A49E98]">
+        terminal logs
+      </div>
+      <div className="absolute left-1/2 top-1/2 h-10 w-44 -translate-x-[38%] -translate-y-[155%] -rotate-[31deg] rounded-full border border-[#E0DDD8] bg-white text-center text-[0.82rem] font-semibold leading-10 text-[#292524] shadow-[0_1px_10px_rgb(0_0_0/0.05)]">
+        Looma replay
+      </div>
+    </div>
+  );
+}
+
 function HeroReplayShowcase() {
   return (
     <div className="mt-24 w-full overflow-hidden rounded-[18px] border border-[#E0DFDD] bg-[#F5F3F1] shadow-[0_18px_60px_rgb(0_0_0/0.05)] sm:mt-28">
@@ -331,22 +561,32 @@ function IntegrationHarnessSection() {
             <Link href="#workflow">View integrations</Link>
           </Button>
         </div>
-        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-x-8 gap-y-10 pb-7 pt-6 sm:grid-cols-3 sm:gap-x-10 sm:gap-y-11 sm:pb-9 sm:pt-7 lg:gap-x-20 lg:gap-y-12 lg:pb-10 lg:pt-8">
-          {integrations.map((integration) => (
-            <div
-              key={integration.name}
-              className="flex min-h-10 items-center justify-center text-center"
-              title={integration.name}
-            >
-              <Image
-                src={integration.logo}
-                alt={integration.name}
-                width={132}
-                height={44}
-                className="h-9 w-auto max-w-[8.25rem] opacity-65 grayscale sm:h-10"
-              />
+
+        {/* Breakout horizontal: selebar inner max-w-7xl (melewati px-4/6/8) supaya frame tidak sempit menabrak baris judul + CTA */}
+        <div className="relative -mx-4 mt-10 w-[calc(100%+2rem)] overflow-visible sm:-mx-6 sm:mt-12 sm:w-[calc(100%+3rem)] lg:-mx-8 lg:mt-14 lg:w-[calc(100%+4rem)]">
+          <TechnicalCrosshairFrame>
+            <div className="grid w-full grid-cols-1 justify-items-center gap-x-8 gap-y-8 sm:grid-cols-2 sm:gap-x-10 sm:gap-y-9 md:grid-cols-3 md:gap-x-10 md:gap-y-10 lg:gap-x-12">
+              {integrations.map((integration) => (
+                <div
+                  key={integration.name}
+                  className="group flex min-h-10 w-fit max-w-full min-w-0 items-center justify-center gap-3 sm:gap-3.5"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center sm:h-10 sm:w-10">
+                    <Image
+                      src={integration.logo}
+                      alt=""
+                      width={40}
+                      height={40}
+                      className="h-7 w-7 object-contain opacity-55 grayscale transition-[opacity,filter] duration-200 group-hover:opacity-100 group-hover:grayscale-0 sm:h-8 sm:w-8"
+                    />
+                  </div>
+                  <span className="min-w-0 text-left text-sm font-medium leading-snug tracking-normal text-[#78716C] opacity-90 transition-[color,opacity] duration-200 group-hover:text-[#1C1917] group-hover:opacity-100 sm:text-[15px]">
+                    {integration.name}
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
+          </TechnicalCrosshairFrame>
         </div>
       </div>
     </section>
@@ -355,7 +595,7 @@ function IntegrationHarnessSection() {
 
 function DemoFeatureGrid() {
   return (
-    <div className="grid gap-3 sm:gap-4 lg:grid-cols-4">
+    <div id="features" className="grid gap-3 sm:gap-4 lg:grid-cols-4">
       <article className="relative flex min-h-[420px] flex-col overflow-hidden rounded-2xl border border-[#E0DFDD] bg-[#F5F3F1] p-5 sm:min-h-[440px] sm:p-6 lg:col-span-2">
         <div className="absolute inset-x-0 bottom-0 h-[40%] bg-[radial-gradient(circle_at_20%_15%,#FFAF73_0%,#F41A2F_30%,transparent_58%),radial-gradient(circle_at_64%_54%,#2B7FFF_0%,#6EA4E8_42%,transparent_72%)] opacity-85" />
         <div className="absolute bottom-8 left-0 h-48 w-48 rounded-full bg-[#F41A2F]/20 blur-3xl sm:h-56 sm:w-56" />
@@ -411,8 +651,8 @@ function DemoFeatureGrid() {
             Needs Review: auth fallback changed after the agent fixed a failing
             test.{" "}
             <span className="text-[#57534E]">
-              Open the pinned diff, replay the terminal, and confirm the behavior
-              before merge.
+              Open the pinned diff, replay the terminal, and confirm the
+              behavior before merge.
             </span>
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-3 sm:mt-7 sm:gap-4">
