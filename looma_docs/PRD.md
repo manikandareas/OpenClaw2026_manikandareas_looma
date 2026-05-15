@@ -2609,20 +2609,20 @@ Future:
 * ~~Build Sessions page → `apps/web/app/sessions/page.tsx` + `apps/web/features/sessions/` (list, filters, empty state).~~
 * ~~Build Import page → functional form di `features/import/components/import-form.tsx` (file upload, paste, submit, redirect).~~
 
-## Hour 3–6: Reconstructed Screen Replay UI
+## Hour 3–6: Reconstructed Screen Replay UI ✅ DONE
 
-Komponen replay tinggal di `apps/web/features/replay/` (komponen domain) dan `apps/web/components/` (primitives bersama). Library berat (Monaco/CodeMirror, xterm.js, react-diff-viewer) dibungkus `next/dynamic` agar tidak masuk bundle awal — selaras Vercel `bundle-dynamic-imports`.
+~~Komponen replay tinggal di `apps/web/features/replay/` (komponen domain) dan `apps/web/components/` (primitives bersama). Library berat (Monaco/CodeMirror, xterm.js, react-diff-viewer) dibungkus `next/dynamic` agar tidak masuk bundle awal — selaras Vercel `bundle-dynamic-imports`.~~
 
-* Build single viewport component with mode switching.
-* Terminal mode (xterm.js + typing animation).
-* Editor mode (Monaco/CodeMirror + cursor positioning + line highlight).
-* Diff mode (react-diff-viewer/diff2html).
-* Mode transitions (framer-motion crossfade + scale).
-* Mode indicator badge.
-* Timeline component with colored segments (hijau/kuning/merah).
-* Timeline scrubber with smooth drag.
-* Recording indicator (red pulse + event counter + RECORDING badge).
-* "Jump to Interesting" button.
+* ~~Build single viewport component with mode switching.~~
+* ~~Terminal mode (xterm.js + typing animation).~~
+* ~~Editor mode (Monaco/CodeMirror + cursor positioning + line highlight).~~
+* ~~Diff mode (react-diff-viewer/diff2html).~~
+* ~~Mode transitions (framer-motion crossfade + scale).~~
+* ~~Mode indicator badge.~~
+* ~~Timeline component with colored segments (hijau/kuning/merah).~~
+* ~~Timeline scrubber with smooth drag.~~
+* ~~Recording indicator (red pulse + event counter + RECORDING badge).~~
+* ~~"Jump to Interesting" button.~~
 
 ## Hour 6–8: lens-agent (Agentic Implementation)
 
