@@ -80,7 +80,7 @@ export function SessionCard({ session }: Props) {
   ].filter(Boolean) as string[];
 
   return (
-    <Link href={`/session/${session.id}`} aria-label={ariaParts.join(", ")} className="group block">
+    <Link href={`/sessions/${session.id}`} aria-label={ariaParts.join(", ")} className="group block">
       <Card
         className={cn(
           "overflow-hidden rounded-xl border border-border bg-transparent text-card-foreground shadow-none transition-colors hover:border-foreground/25",

@@ -13,7 +13,7 @@ const LINK_ACTIONS = [
   {
     title: "View Demo",
     description: "See a sample replay session in action",
-    href: "/session/demo",
+    href: "/sessions/demo",
     icon: Play,
   },
   {

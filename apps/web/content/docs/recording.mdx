@@ -24,7 +24,7 @@ The response includes the session ID and the public replay route:
 {
   "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
   "status": "recording",
-  "replayUrl": "http://localhost:3000/session/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+  "replayUrl": "http://localhost:3000/sessions/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
 }
 ```
 
@@ -56,7 +56,7 @@ Call `record_stop` when the agent is done.
 }
 ```
 
-The `finalOutput` field is optional. Passing it makes the final agent response visible on `/session/{sessionId}` without digging through the timeline.
+The `finalOutput` field is optional. Passing it makes the final agent response visible on `/sessions/{sessionId}` without digging through the timeline.
 
 After stop, Looma marks the session as `processing` and prepares replay metadata.
 
@@ -64,10 +64,10 @@ After stop, Looma marks the session as `processing` and prepares replay metadata
 {
   "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
   "status": "processing",
-  "replayUrl": "http://localhost:3000/session/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+  "replayUrl": "http://localhost:3000/sessions/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
 }
 ```
 
 ## Open the replay
 
-Open `/session/{sessionId}` to review the session timeline, terminal output, diffs, test results, final output, chapters, notes, and Needs Review markers.
+Open `/sessions/{sessionId}` to review the session timeline, terminal output, diffs, test results, final output, chapters, notes, and Needs Review markers.

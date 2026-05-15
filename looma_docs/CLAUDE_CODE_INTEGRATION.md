@@ -27,7 +27,7 @@ Then run `/mcp` in Claude Code and confirm the `looma` server exposes:
 - `record_event`
 - `record_stop`
 
-`record_start` writes the active session ID to `~/.looma/active_session`. `record_event` and `record_stop` can use that active session automatically, so `sessionId` is optional after start. Pass `finalOutput` to `record_stop` when the agent has a final answer; Looma stores it as a replay event and shows it on `/session/<sessionId>`.
+`record_start` writes the active session ID to `~/.looma/active_session`. `record_event` and `record_stop` can use that active session automatically, so `sessionId` is optional after start. Pass `finalOutput` to `record_stop` when the agent has a final answer; Looma stores it as a replay event and shows it on `/sessions/<sessionId>`.
 
 `looma setup claude-code` writes `.mcp.json` and `.claude/settings.local.json` in the current project. Claude Code command hooks send hook input as JSON on stdin. The bridge records `PostToolUse` and `PostToolUseFailure` for `Bash`, `Read`, `Write`, `Edit`, `MultiEdit`, `Glob`, `Grep`, `LS`, and `NotebookEdit`.
 
@@ -55,6 +55,6 @@ This is only a UX wrapper. MCP tools and hooks remain the source of truth.
 
 1. Run `/record start "Claude Code smoke test"` or ask Claude to call `record_start`.
 2. Let Claude run a harmless `Read`, `Bash`, and edit in a throwaway workspace.
-3. Open the returned `/session/<sessionId>` URL and confirm the recording indicator and event count update while the session is active.
+3. Open the returned `/sessions/<sessionId>` URL and confirm the recording indicator and event count update while the session is active.
 4. Run `/record stop` or call `record_stop`.
 5. Confirm the session moves through `processing` and reaches the replay page with events, final output when provided, markers, chapters, notes, and behavior summary.

@@ -31,7 +31,7 @@ server.registerTool(
   {
     title: "Start Looma recording",
     description:
-      "Start conscious Looma recording for Claude Code. This creates a session, writes ~/.looma/active_session, and returns a /session/{sessionId} replay URL.",
+      "Start conscious Looma recording for Claude Code. This creates a session, writes ~/.looma/active_session, and returns a /sessions/{sessionId} replay URL.",
     inputSchema: {
       name: z.string().min(1).max(160),
       harness: z.string().min(1).max(80).default("unknown"),
@@ -88,7 +88,7 @@ server.registerTool(
   {
     title: "Stop Looma recording",
     description:
-      "Stop the active Looma recording, trigger replay processing, clear ~/.looma/active_session, and return the /session/{sessionId} replay URL.",
+      "Stop the active Looma recording, trigger replay processing, clear ~/.looma/active_session, and return the /sessions/{sessionId} replay URL.",
     inputSchema: {
       sessionId: z.string().uuid().optional(),
       finalOutput: z.object({

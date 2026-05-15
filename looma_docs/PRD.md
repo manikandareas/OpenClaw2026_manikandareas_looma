@@ -379,7 +379,7 @@ Replay page menyediakan:
 Semua fitur utama berada di satu halaman:
 
 ```text
-/replay/[sessionId]
+/sessions/[sessionId]
 ```
 
 Halaman ini berisi:
@@ -1538,7 +1538,7 @@ Public Pages (No Auth):
 App Pages (Auth Required):
   /dashboard            Overview — recent sessions, activity chart, quick actions
   /sessions             Session list — card grid with preview thumbnails
-  /replay/[sessionId]   Main replay experience
+  /sessions/[sessionId]   Main replay experience
   /import               Upload JSON/JSONL transcript
 ```
 
@@ -1591,9 +1591,9 @@ App Pages (Auth Required):
 * **Search**: by session name.
 * **Sort**: by date (newest first default), by duration, by marker count.
 * **Empty state**: CTA to start first recording or import transcript.
-* Click card → navigasi ke `/replay/[sessionId]`.
+* Click card → navigasi ke `/sessions/[sessionId]`.
 
-#### `/replay/[sessionId]` — Replay Page (Auth Required, Shareable)
+#### `/sessions/[sessionId]` — Replay Page (Auth Required, Shareable)
 
 * Main replay experience (reconstructed screen replay).
 * Full layout sesuai Section 17.
@@ -1631,12 +1631,12 @@ Supabase Auth dengan `@supabase/ssr` untuk Next.js server-side authentication.
 ### Route Protection
 
 * **Protected routes**: `/dashboard`, `/sessions`, `/import`.
-* **Public routes**: `/`, `/session/*`, `/auth/login`, `/auth/sign-up`.
+* **Public routes**: `/`, `/sessions/*`, `/auth/login`, `/auth/sign-up`.
 * **Proxy**: Next.js proxy (`proxy.ts`) untuk refresh Supabase Auth session dan redirect unauthenticated users ke `/auth/login`.
 
 ### Shared Replay Access
 
-* Replay links (`/replay/[sessionId]`) dapat diakses tanpa login dalam **read-only mode**.
+* Replay links (`/sessions/[sessionId]`) dapat diakses tanpa login dalam **read-only mode**.
 * Read-only mode: bisa play/scrub/view, tidak bisa delete atau modify session.
 * Jika user login dan memiliki session tersebut, tampilkan full controls.
 
@@ -2021,7 +2021,7 @@ Response:
 ## Get Replay
 
 ```http
-GET /api/sessions/:sessionId/replay
+GET /api/sessions/:sessionId/sessions
 ```
 
 Response:
@@ -2182,7 +2182,7 @@ Output:
 
 ```json
 {
-  "url": "https://looma.app/replay/sess_abc123"
+  "url": "https://looma.app/sessions/sess_abc123"
 }
 ```
 
@@ -2599,7 +2599,7 @@ Future:
 
 ## Hour 3–6: Reconstructed Screen Replay UI ✅ DONE
 
-~~Komponen replay tinggal di `apps/web/features/replay/` (komponen domain) dan `apps/web/components/` (primitives bersama). Library berat (Monaco/CodeMirror, xterm.js, react-diff-viewer) dibungkus `next/dynamic` agar tidak masuk bundle awal — selaras Vercel `bundle-dynamic-imports`.~~
+~~Komponen replay tinggal di `apps/web/features/sessions/` (komponen domain) dan `apps/web/components/` (primitives bersama). Library berat (Monaco/CodeMirror, xterm.js, react-diff-viewer) dibungkus `next/dynamic` agar tidak masuk bundle awal — selaras Vercel `bundle-dynamic-imports`.~~
 
 * ~~Build single viewport component with mode switching.~~
 * ~~Terminal mode (xterm.js + typing animation).~~
@@ -2645,11 +2645,11 @@ Manual Real Env E2E result:
 
 ## Hour 8–9: Aha Moment + Landing Page
 
-**Status: Done.** Implementasi Hour 8–9 saat ini difokuskan pada replay Aha surface: `/session/demo` public fixture dengan auto-play, `Jump to Interesting` yang severity-first dan cyclic, share link, embed snippet, embed mode, dan OG/Twitter metadata untuk replay pages.
+**Status: Done.** Implementasi Hour 8–9 saat ini difokuskan pada replay Aha surface: `/sessions/demo` public fixture dengan auto-play, `Jump to Interesting` yang severity-first dan cyclic, share link, embed snippet, embed mode, dan OG/Twitter metadata untuk replay pages.
 
 **Catatan:** landing page sedang dalam pengembangan, sehingga item landing page di bawah belum dianggap final meskipun milestone Hour 8–9 sudah ditutup dari sisi replay Aha surface.
 
-* ~~Pre-loaded demo session on replay page (auto-play di `/session/demo`).~~
+* ~~Pre-loaded demo session on replay page (auto-play di `/sessions/demo`).~~
 * Before/after comparison component (split screen) — landing page in progress.
 * Landing page hero section — in progress.
 * ~~OG meta tags for replay pages.~~

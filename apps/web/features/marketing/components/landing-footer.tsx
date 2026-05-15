@@ -55,7 +55,7 @@ function footerHrefFor(label: string) {
   }
 
   if (label === "Public session link" || label === "Replay workspace") {
-    return "/session/demo";
+    return "/sessions/demo";
   }
 
   if (

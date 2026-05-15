@@ -76,7 +76,7 @@ describe("replay share utilities", () => {
       origin: "https://looma.test",
     });
 
-    expect(snippet).toContain("https://looma.test/session/demo?embed=1");
+    expect(snippet).toContain("https://looma.test/sessions/demo?embed=1");
     expect(snippet).toContain("Aha &quot;Moment&quot; &lt;Replay&gt; replay");
     expect(snippet).not.toContain("<Replay>");
   });

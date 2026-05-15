@@ -239,7 +239,7 @@ export function WorkflowSection() {
                       title="Replay Artifact API"
                       body="Publish one review link with chapters, behavior summary, and the exact evidence a teammate needs before merge."
                       items={[
-                        ["Public session", "A canonical /session link"],
+                        ["Public session", "A canonical /sessions link"],
                         ["AI notes", "Summary and remaining risk"],
                         ["Review state", "Share, inspect, approve"],
                       ]}

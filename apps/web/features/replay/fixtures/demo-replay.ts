@@ -13,11 +13,11 @@ const events = [
     display_text: "TypeScript found a stale route prop contract.",
     redacted_payload_json: {
       output:
-        "app/session/[sessionId]/page.tsx: Type '{ params: { sessionId: string } }' does not satisfy Next.js 16 route props.\nExpected params to be a Promise.",
+        "app/sessions/[sessionId]/page.tsx: Type '{ params: { sessionId: string } }' does not satisfy Next.js 16 route props.\nExpected params to be a Promise.",
     },
   }),
   makeEvent(3, "file_read", {
-    related_file: "apps/web/app/session/[sessionId]/page.tsx",
+    related_file: "apps/web/app/sessions/[sessionId]/page.tsx",
     display_text: "Read session route page.",
     redacted_payload_json: {
       content:
@@ -77,7 +77,7 @@ const events = [
     },
   }),
   makeEvent(10, "file_diff", {
-    related_file: "apps/web/app/session/[sessionId]/page.tsx",
+    related_file: "apps/web/app/sessions/[sessionId]/page.tsx",
     display_text: "Added embed mode without touching landing page.",
     redacted_payload_json: {
       before: "<AppNav />\n<main className=\"mx-auto max-w-7xl px-4 py-6\">",
@@ -140,7 +140,7 @@ const events = [
     },
   }),
   makeEvent(16, "file_diff", {
-    related_file: "apps/web/app/session/[sessionId]/page.tsx",
+    related_file: "apps/web/app/sessions/[sessionId]/page.tsx",
     display_text: "Generated replay-specific Open Graph metadata.",
     redacted_payload_json: {
       before: "export default async function ReplayPage({ params }) {",
@@ -157,11 +157,11 @@ const events = [
     display_text: "Typecheck failed: route searchParams needs Promise type.",
     redacted_payload_json: {
       output:
-        "app/session/[sessionId]/page.tsx: Type '{ searchParams?: { embed?: string } }' does not satisfy PageProps.\nNext.js 16 expects searchParams?: Promise<Record<string, string | string[] | undefined>>.",
+        "app/sessions/[sessionId]/page.tsx: Type '{ searchParams?: { embed?: string } }' does not satisfy PageProps.\nNext.js 16 expects searchParams?: Promise<Record<string, string | string[] | undefined>>.",
     },
   }),
   makeEvent(19, "file_diff", {
-    related_file: "apps/web/app/session/[sessionId]/page.tsx",
+    related_file: "apps/web/app/sessions/[sessionId]/page.tsx",
     display_text: "Fixed Next.js 16 searchParams typing.",
     redacted_payload_json: {
       before: "searchParams?: { embed?: string };",
@@ -193,7 +193,7 @@ const events = [
     },
   }),
   makeEvent(23, "browser_snapshot", {
-    display_text: "/session/demo smoke opened with autoplay and embedded mode available.",
+    display_text: "/sessions/demo smoke opened with autoplay and embedded mode available.",
     redacted_payload_json: {
       summary:
         "Demo replay loaded publicly, controls are visible, app nav is hidden for ?embed=1, and metadata tags include replay title.",
@@ -208,7 +208,7 @@ const events = [
     display_text: "Production build completed.",
     redacted_payload_json: {
       output:
-        "Route (app)\n/session/[sessionId]\n/session/[sessionId]/opengraph-image\n/api/sessions/[sessionId]/replay",
+        "Route (app)\n/sessions/[sessionId]\n/sessions/[sessionId]/opengraph-image\n/api/sessions/[sessionId]/replay",
     },
   }),
   makeEvent(26, "final_output", {
@@ -265,7 +265,7 @@ export const demoReplayData = {
     important_files_json: [
       "apps/web/features/replay/hooks/use-playback-engine.ts",
       "apps/web/features/replay/components/replay-shell.tsx",
-      "apps/web/app/session/[sessionId]/page.tsx",
+      "apps/web/app/sessions/[sessionId]/page.tsx",
       "apps/web/app/api/sessions/[sessionId]/replay/route.ts",
       "apps/web/features/replay/utils/interesting-marker.ts",
     ],

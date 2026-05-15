@@ -8,13 +8,13 @@ type EmbedSnippetInput = {
 
 export function buildSessionUrl(sessionId: string, origin = getAppUrl()): string {
   return new URL(
-    `/session/${encodeURIComponent(sessionId)}`,
+    `/sessions/${encodeURIComponent(sessionId)}`,
     ensureTrailingSlash(origin)
   ).toString();
 }
 
 export function buildEmbedUrl(sessionId: string, origin = getAppUrl()): string {
-  const url = new URL(`/session/${encodeURIComponent(sessionId)}`, ensureTrailingSlash(origin));
+  const url = new URL(`/sessions/${encodeURIComponent(sessionId)}`, ensureTrailingSlash(origin));
   url.searchParams.set("embed", "1");
   return url.toString();
 }

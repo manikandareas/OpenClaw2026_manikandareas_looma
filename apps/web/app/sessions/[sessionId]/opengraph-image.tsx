@@ -56,7 +56,7 @@ export default async function Image({ params }: OpenGraphImageProps) {
             {reviewLabel}
           </div>
         </div>
-        <div style={{ color: "#71717a", display: "flex", fontSize: 24 }}>/session/{sessionId}</div>
+        <div style={{ color: "#71717a", display: "flex", fontSize: 24 }}>/sessions/{sessionId}</div>
       </div>
     ),
     size

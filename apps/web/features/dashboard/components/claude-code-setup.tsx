@@ -147,7 +147,7 @@ export function ClaudeCodeSetup({ appUrl }: ClaudeCodeSetupProps) {
               Run <code className="text-foreground">looma doctor</code>.
             </p>
             <p className="rounded-md border border-border px-3 py-2">Ask Claude to call `record_start`.</p>
-            <p className="rounded-md border border-border px-3 py-2">Open the returned `/session/...` URL.</p>
+            <p className="rounded-md border border-border px-3 py-2">Open the returned `/sessions/...` URL.</p>
           </div>
           <CodeBlock value={doctorCommand} />
         </section>

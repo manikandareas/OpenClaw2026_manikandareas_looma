@@ -22,7 +22,7 @@ The goal is not to judge whether the agent was correct. Looma helps humans answe
 The public replay route is:
 
 ```text
-/session/{sessionId}
+/sessions/{sessionId}
 ```
 
 Replay data is served internally by:
@@ -41,7 +41,7 @@ GET /api/sessions/{sessionId}/replay
 - **Normalized event capture**: converts mixed harness events into Looma's coding-native schema.
 - **Redaction**: masks secrets, tokens, passwords, and sensitive env values before replay.
 - **lens-agent processing**: intended post-processing layer for chapters, Needs Review markers, behavior summary, and AI session notes.
-- **Shareable replay link**: completed sessions return a `/session/{sessionId}` URL.
+- **Shareable replay link**: completed sessions return a `/sessions/{sessionId}` URL.
 
 ## Architecture
 
@@ -56,7 +56,7 @@ flowchart LR
   E --> F[(Supabase Postgres)]
   F --> G[lens-agent Processing]
   G --> F
-  F --> H[Replay Page /session/{sessionId}]
+  F --> H[Replay Page /sessions/{sessionId}]
 ```
 
 PRD-level flow:
@@ -138,7 +138,7 @@ Two-minute judge-friendly path:
 6. Let the agent run; hooks capture `Bash`, `Read`, `Write`, `Edit`, `MultiEdit`, `Glob`, `Grep`, `LS`, and failures.
 7. Show normalized events appearing in Looma.
 8. Stop the recording with `record_stop` or `/record stop`.
-6. Open the returned `/session/{sessionId}` replay link.
+6. Open the returned `/sessions/{sessionId}` replay link.
 7. Review the timeline, terminal output, diffs, test results, chapters, AI notes, and Needs Review markers.
 
 ## Example Input/Output
@@ -162,7 +162,7 @@ Output:
 {
   "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
   "status": "recording",
-  "replayUrl": "http://localhost:3000/session/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+  "replayUrl": "http://localhost:3000/sessions/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
 }
 ```
 
@@ -214,7 +214,7 @@ Output:
 {
   "sessionId": "2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1",
   "status": "processing",
-  "replayUrl": "http://localhost:3000/session/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
+  "replayUrl": "http://localhost:3000/sessions/2c0e9a50-9f8d-4e74-9cf8-4cb4c9b678e1"
 }
 ```
 
@@ -242,7 +242,7 @@ Output:
 ```text
 apps/web/                         Next.js 16 App Router web app
 apps/web/app/api/sessions/        Recording, event, stop, process, and replay API routes
-apps/web/app/session/[sessionId]/ Public replay page route
+apps/web/app/sessions/[sessionId]/ Public replay page route
 packages/shared/                  Shared Zod schemas, event contracts, and redaction helpers
 packages/looma-agent/             Publishable CLI package with looma, looma-mcp, and looma-hook bins
 packages/mcp-server/              Local stdio MCP server exposing record_start/event/stop

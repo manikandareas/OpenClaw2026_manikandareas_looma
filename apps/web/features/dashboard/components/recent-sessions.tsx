@@ -95,7 +95,7 @@ function SessionRow({
 }) {
   return (
     <Link
-      href={`/session/${session.id}`}
+      href={`/sessions/${session.id}`}
       className="grid grid-cols-[1fr_auto_auto] items-center gap-4 rounded-md px-2 py-2 text-sm transition-colors hover:bg-muted/50"
     >
       <span className="flex min-w-0 items-center gap-2.5">
