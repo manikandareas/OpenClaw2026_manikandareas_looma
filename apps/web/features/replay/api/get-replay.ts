@@ -18,7 +18,13 @@ export function useReplay(sessionId: string) {
   return useQuery({
     queryKey: ["replay", sessionId],
     queryFn: () => fetchReplay(sessionId),
-    staleTime: 60_000,
+    staleTime: 10_000,
+    refetchInterval: (query) => {
+      const data = query.state.data as ReplayData | undefined;
+      return data?.session.status === "recording" || data?.session.status === "processing"
+        ? 2_000
+        : false;
+    },
     refetchOnWindowFocus: false,
   });
 }

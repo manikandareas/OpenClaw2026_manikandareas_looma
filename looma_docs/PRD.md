@@ -539,20 +539,11 @@ MCP server Looma adalah TypeScript MCP server yang:
 
 #### MCP Server Config Example
 
-```json
-{
-  "mcpServers": {
-    "looma": {
-      "command": "node",
-      "args": ["./packages/mcp-server/dist/index.js"],
-      "env": {
-        "LOOMA_API_URL": "http://localhost:3000/api",
-        "LOOMA_API_KEY": "..."
-      }
-    }
-  }
-}
+```bash
+claude mcp add --transport stdio --env LOOMA_API_URL=http://localhost:3000 --env LOOMA_API_KEY=<token> looma -- bun /abs/path/packages/mcp-server/src/index.ts
 ```
+
+API key dibuat dari dashboard authenticated Looma. Token ditampilkan sekali, lalu Looma hanya menyimpan SHA-256 hash di tabel `api_keys`.
 
 #### Demo Requirement
 
@@ -580,7 +571,7 @@ Simulated event stream tetap tersedia sebagai fallback untuk demo tanpa live age
 Looma menggunakan **hybrid capture model** untuk memastikan semua event ter-capture secara reliable:
 
 * **MCP Tools** (`record_start`, `record_stop`): User memiliki kontrol eksplisit kapan mulai dan berhenti merekam. Ini adalah conscious action.
-* **Agent Harness Hooks** (`PostToolCall`): Setiap tool call yang dilakukan agent otomatis ter-capture sebagai event tanpa bergantung pada agent "ingat" mengirim. Ini adalah implicit capture.
+* **Agent Harness Hooks** (`PostToolUse`, `PostToolUseFailure`): Setiap tool call yang dilakukan agent otomatis ter-capture sebagai event tanpa bergantung pada agent "ingat" mengirim. Ini adalah implicit capture.
 
 #### Mengapa Hybrid
 
@@ -595,23 +586,51 @@ Hooks perlu tahu apakah sedang ada recording aktif. Solusinya menggunakan file m
 ```
 
 * `record_start` dipanggil → MCP server menulis session ID ke `~/.looma/active_session`.
-* Hook `PostToolCall` → membaca file tersebut. Jika ada → kirim event. Jika tidak ada → skip.
+* Hook `PostToolUse` / `PostToolUseFailure` → membaca file tersebut. Jika ada → kirim event. Jika tidak ada → skip.
 * `record_stop` dipanggil → MCP server menghapus `~/.looma/active_session`.
 
 #### Claude Code Hooks Config Example
 
 ```json
 {
+  "env": {
+    "LOOMA_API_URL": "http://localhost:3000",
+    "LOOMA_API_KEY": "<token>"
+  },
   "hooks": {
-    "PostToolCall": [
+    "PostToolUse": [
       {
         "matcher": "*",
-        "command": "node ./packages/hook-bridge/dist/index.js '$TOOL_NAME' '$TOOL_INPUT' '$TOOL_OUTPUT'"
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["/abs/path/packages/hook-bridge/dist/index.js"],
+            "async": true,
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["/abs/path/packages/hook-bridge/dist/index.js"],
+            "async": true,
+            "timeout": 30
+          }
+        ]
       }
     ]
   }
 }
 ```
+
+Claude Code command hooks mengirim input sebagai JSON melalui `stdin`; hook bridge tidak membaca `$TOOL_NAME`, `$TOOL_INPUT`, atau `$TOOL_OUTPUT`.
 
 #### Recording Scope
 
@@ -1472,7 +1491,7 @@ LLM tidak digunakan untuk:
 
 1. Coding agent menerima task dari user.
 2. Agent membaca file, menjalankan tool, mengedit file, menjalankan command, dan menjalankan test.
-3. Hooks (`PostToolCall`) otomatis mengirim setiap action sebagai event ke Looma API.
+3. Hooks (`PostToolUse`, `PostToolUseFailure`) otomatis mengirim setiap action sebagai event ke Looma API.
 4. Looma menyimpan event dengan redaction.
 5. UI live event stream update secara real-time via Supabase Realtime.
 6. User dapat melakukan follow-up prompts — recording tetap berjalan.
@@ -2276,7 +2295,7 @@ Supabase Storage optional
 ```text
 TypeScript MCP SDK
 Node.js runtime
-Hook bridge script (PostToolCall → Looma API)
+Hook bridge script (PostToolUse / PostToolUseFailure → Looma API)
 ```
 
 ## AI Model
@@ -2318,7 +2337,8 @@ Claude Code / Codex / OpenCode / OpenClaw / Cline / Aider
 │    → User controls session lifecycle       │
 │                                            │
 │  Hooks (implicit, automatic)               │
-│    PostToolCall → hook-bridge → API        │
+│    PostToolUse / PostToolUseFailure        │
+│    → hook-bridge → API                     │
 │    → Every agent action auto-captured      │
 │                                            │
 │  State: ~/.looma/active_session            │
@@ -2360,8 +2380,8 @@ Shareable Replay Artifact
 * Record event API.
 * Stop session API.
 * Replay API.
-* Real MCP server (record_start, record_event, record_stop) functional with Claude Code.
-* Hook bridge for automatic event capture (PostToolCall → Looma API).
+* Real MCP server (record_start, record_event, record_stop) functional with Claude Code after manual E2E verification.
+* Hook bridge for automatic event capture (PostToolUse / PostToolUseFailure → Looma API).
 * Active session file mechanism (~/.looma/active_session).
 * Simulated `/record` trigger (fallback).
 * Live event stream.
@@ -2585,7 +2605,7 @@ Future:
 * ~~Create login/signup pages di `apps/web/app/auth/login` dan `apps/web/app/auth/sign-up`.~~
 * ~~Setup Next.js proxy for route protection (`apps/web/proxy.ts`).~~
 * ~~Create MCP server skeleton (record_start, record_event, record_stop) di `packages/mcp-server`.~~
-* ~~Create hook bridge script (PostToolCall → Looma API) di `packages/hook-bridge`.~~
+* ~~Create hook bridge script (PostToolUse / PostToolUseFailure → Looma API) di `packages/hook-bridge`.~~
 * ~~Define shared event schema + Zod types di `packages/shared` (`@looma/shared`).~~
 
 ## Hour 1–3: Backend + App Pages Shell ✅ DONE
@@ -2597,8 +2617,8 @@ Future:
 * ~~Create import transcript API (enhanced: multi-event JSON array parsing with redaction).~~
 * ~~Add `GET /api/sessions` — list sessions with filtering (status, search), pagination (limit/offset), marker counts.~~
 * ~~Add `GET /api/sessions/[sessionId]` — single session detail with event/marker counts.~~
-* ~~MCP server fully functional with Claude Code.~~
-* ~~Hook bridge functional (reads ~/.looma/active_session, sends events).~~
+* MCP server has the required Looma tools and needs one live Claude Code E2E pass before being marked fully functional.
+* Hook bridge supports Claude Code stdin JSON hooks and needs one live Claude Code E2E pass before being marked fully functional.
 * ~~Add Zod schemas + sample event JSON di `@looma/shared` atau `apps/web/config/`.~~
 * ~~Install TanStack Query (`@tanstack/react-query`) + QueryProvider di `providers/query-provider.tsx`.~~
 * ~~Shared types di `types/session.ts` (SessionCard, GetSessionsParams, GetSessionsResponse).~~

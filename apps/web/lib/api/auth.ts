@@ -15,11 +15,16 @@ export async function getApiActor(request: Request): Promise<ApiActor | null> {
     const supabase = createSupabaseAdminClient();
     const { data, error } = await supabase
       .from("api_keys")
-      .select("user_id, revoked_at")
+      .select("id, user_id, revoked_at")
       .eq("key_hash", keyHash)
       .maybeSingle();
 
     if (!error && data && !data.revoked_at) {
+      await supabase
+        .from("api_keys")
+        .update({ last_used_at: new Date().toISOString() })
+        .eq("id", data.id);
+
       return { userId: data.user_id as string, authMode: "api_key" };
     }
   }

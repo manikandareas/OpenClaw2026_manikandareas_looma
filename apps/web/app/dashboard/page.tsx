@@ -1,3 +1,4 @@
+import { resolve } from "node:path";
 import Link from "next/link";
 import { Import } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,12 @@ import { QuickActions } from "@/features/dashboard/components/quick-actions";
 import { ActivityChart } from "@/features/dashboard/components/activity-chart";
 
 export default function DashboardPage() {
+  const workspaceRoot = process.cwd().endsWith("apps/web")
+    ? resolve(process.cwd(), "../..")
+    : process.cwd();
+  const mcpServerPath = resolve(workspaceRoot, "packages/mcp-server/src/index.ts");
+  const hookBridgePath = resolve(workspaceRoot, "packages/hook-bridge/dist/index.js");
+
   return (
     <>
       <AppNav />
@@ -33,7 +40,7 @@ export default function DashboardPage() {
           <ActivityChart />
         </div>
         <div className="mt-8">
-          <QuickActions />
+          <QuickActions mcpServerPath={mcpServerPath} hookBridgePath={hookBridgePath} />
         </div>
       </main>
     </>
