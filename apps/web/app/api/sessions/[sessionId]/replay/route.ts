@@ -32,8 +32,38 @@ export async function GET(_request: Request, context: RouteContext) {
     events: events.data ?? [],
     markers: markers.data ?? [],
     chapters: chapters.data ?? [],
-    behaviorSummary: behaviorSummary.data ?? metadata.data?.behavior_summary_json ?? {},
+    behaviorSummary: normalizeBehaviorSummary(
+      behaviorSummary.data ?? metadata.data?.behavior_summary_json
+    ),
     notes: notes.data?.content ?? metadata.data?.notes ?? "",
     redactionSummary: metadata.data?.redaction_summary_json ?? {}
   });
+}
+
+function normalizeBehaviorSummary(value: unknown) {
+  const summary = isRecord(value) ? value : {};
+
+  return {
+    read_count: getNumber(summary.read_count),
+    edit_count: getNumber(summary.edit_count),
+    run_count: getNumber(summary.run_count),
+    fail_count: getNumber(summary.fail_count),
+    fix_count: getNumber(summary.fix_count),
+    verify_count: getNumber(summary.verify_count),
+    review_count: getNumber(summary.review_count),
+    important_files_json: getStringArray(summary.important_files_json),
+    important_commands_json: getStringArray(summary.important_commands_json)
+  };
+}
+
+function getNumber(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function getStringArray(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
