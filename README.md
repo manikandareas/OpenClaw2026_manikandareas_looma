@@ -4,11 +4,18 @@ Looma is the Loom for autonomous coding agents: a replay-native review layer tha
 
 Autonomous coding agents can read files, run commands, edit code, fail tests, retry, install dependencies, and eventually hand back a final answer. The raw logs behind that process are hard to review, hard to trust, and hard to share. Looma turns the run into one replay page with a synchronized timeline, terminal output, diffs, snapshots, test results, chapters, AI notes, and Needs Review markers.
 
-> Development status: Looma is under active development. This README describes the PRD target and MVP behavior; some implementation details are still evolving.
+## Links
+
+- **Live app**: <https://looma-gold.vercel.app/>
+- **Public demo replay**: <https://looma-gold.vercel.app/sessions/demo>
+- **NPM package**: <https://www.npmjs.com/package/looma-agent>
+- **GitHub repository**: <https://github.com/manikandareas/OpenClaw2026_manikandareas_looma>
+
+> Development status: Looma is an active hackathon MVP. The public app, replay demo, and `looma-agent` package are available, while deeper harness integrations continue to evolve.
 
 ## Overview
 
-Looma is built for developers, tech leads, reviewers, and tool builders who use autonomous coding agents such as Claude Code, Codex, OpenCode, OpenClaw, Cline, Aider, or custom harnesses.
+Looma is built for developers, tech leads, reviewers, and tool builders who use autonomous coding agents such as OpenClaw, Hermes Agent, Claude Code, Codex, OpenCode, Cline, Aider, or custom harnesses.
 
 The goal is not to judge whether the agent was correct. Looma helps humans answer the practical review questions:
 
@@ -31,6 +38,12 @@ Replay data is served internally by:
 GET /api/sessions/{sessionId}/replay
 ```
 
+For a ready-made example, open:
+
+```text
+https://looma-gold.vercel.app/sessions/demo
+```
+
 ## Key Features
 
 - **Shareable replay artifact**: one compact page for the full agent session.
@@ -42,6 +55,44 @@ GET /api/sessions/{sessionId}/replay
 - **Redaction**: masks secrets, tokens, passwords, and sensitive env values before replay.
 - **lens-agent processing**: intended post-processing layer for chapters, Needs Review markers, behavior summary, and AI session notes.
 - **Shareable replay link**: completed sessions return a `/sessions/{sessionId}` URL.
+
+## Quick Start For Judges
+
+Use this path if you only want to evaluate the public deployment and package quickly.
+
+1. Open the deployed app:
+
+   ```text
+   https://looma-gold.vercel.app/
+   ```
+
+2. Open the public demo replay:
+
+   ```text
+   https://looma-gold.vercel.app/sessions/demo
+   ```
+
+3. Inspect the replay timeline, terminal output, file diffs, session notes, and Needs Review markers.
+
+4. Install the public agent bridge:
+
+   ```bash
+   npm i -g looma-agent@beta
+   ```
+
+5. Confirm the CLI is installed:
+
+   ```bash
+   looma --help
+   looma doctor
+   ```
+
+6. If you have a Looma API key from the dashboard setup panel, run an end-to-end recording smoke test:
+
+   ```bash
+   looma setup claude-code --app-url https://looma-gold.vercel.app --api-key looma_xxx
+   LOOMA_API_URL=https://looma-gold.vercel.app LOOMA_API_KEY=looma_xxx looma doctor --e2e
+   ```
 
 ## Architecture
 
@@ -73,6 +124,7 @@ Requirements:
 
 - Bun `1.3.10` or newer compatible with the repo lockfile.
 - A Supabase project for Auth and Postgres.
+- Node.js `20` or newer if you want to use the published `looma-agent` CLI package.
 
 Install dependencies:
 
@@ -101,8 +153,8 @@ For public beta installs, use the packaged agent bridge instead of repo-local pa
 
 ```bash
 npm i -g looma-agent@beta
-looma setup claude-code --app-url $NEXT_PUBLIC_APP_URL --api-key <token>
-LOOMA_API_URL=$NEXT_PUBLIC_APP_URL LOOMA_API_KEY=<token> looma doctor --e2e
+looma setup claude-code --app-url https://looma-gold.vercel.app --api-key <token>
+LOOMA_API_URL=https://looma-gold.vercel.app LOOMA_API_KEY=<token> looma doctor --e2e
 ```
 
 Generate `LOOMA_API_KEY` from the authenticated dashboard setup panel. Looma shows the token once and stores only a SHA-256 hash in `api_keys`.
@@ -113,7 +165,13 @@ Generate `LOOMA_API_KEY` from the authenticated dashboard setup panel. Looma sho
 - `.claude/settings.local.json` installs async Claude Code hooks through the same installed package entrypoint.
 - `looma doctor --e2e` verifies the full write path by creating a session, recording one event, stopping it, and printing the replay URL.
 
-Use `looma-agent@beta` until the Claude Code bridge is promoted to the NPM `latest` tag. The current fixed beta is `0.1.0-beta.1`.
+Use `looma-agent@beta` until the Claude Code bridge is promoted to the NPM `latest` tag. The current repo package version is `0.1.0-beta.2`.
+
+NPM package page:
+
+```text
+https://www.npmjs.com/package/looma-agent
+```
 
 Verification commands:
 
@@ -134,11 +192,18 @@ bun run build
 | `LOOMA_API_URL` | Server/tooling | Base Looma web URL for MCP and hook bridge calls. Use the same value as `NEXT_PUBLIC_APP_URL`; the public beta domain is `https://looma-gold.vercel.app`. |
 | `LOOMA_API_KEY` | Server/tooling | Bearer token used by MCP and hook bridge requests to Looma API routes. |
 
+For public beta CLI usage, the important values are:
+
+```bash
+LOOMA_API_URL=https://looma-gold.vercel.app
+LOOMA_API_KEY=looma_xxx
+```
+
 ## Demo Flow
 
 Two-minute judge-friendly path:
 
-1. Start the web app and open the dashboard.
+1. Open <https://looma-gold.vercel.app/> or start the web app locally with `bun run dev`.
 2. Open **Start Recording** and generate a Looma API key.
 3. Install `looma-agent@beta` and run the setup command from the setup panel.
 4. Run `looma doctor --e2e`, then verify `/mcp` shows Looma tools.
@@ -148,6 +213,13 @@ Two-minute judge-friendly path:
 8. Stop the recording with `record_stop` or `/record stop`.
 9. Open the returned `/sessions/{sessionId}` replay link.
 10. Review the timeline, terminal output, diffs, test results, chapters, AI notes, and Needs Review markers.
+
+Fallback path when no API key is available:
+
+1. Open <https://looma-gold.vercel.app/sessions/demo>.
+2. Play or scrub the timeline.
+3. Jump to Needs Review markers.
+4. Inspect terminal output, diff snippets, chapters, and AI session notes.
 
 ## Example Input/Output
 

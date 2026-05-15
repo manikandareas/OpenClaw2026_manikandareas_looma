@@ -2,6 +2,12 @@
 
 Local Looma bridge for public beta users.
 
+Links:
+
+- Live app: <https://looma-gold.vercel.app>
+- Demo replay: <https://looma-gold.vercel.app/sessions/demo>
+- NPM package: <https://www.npmjs.com/package/looma-agent>
+
 ```bash
 npm i -g looma-agent@beta
 looma setup claude-code --app-url https://looma-gold.vercel.app --api-key looma_xxx
